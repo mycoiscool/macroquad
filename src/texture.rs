@@ -1,16 +1,17 @@
 //! Loading and rendering textures. Also render textures, per-pixel image manipulations.
 
 use crate::{
-    color::Color, file::load_file, get_context, get_quad_context, math::Rect,
+    color::Color, file::load_file, get_context, get_quad_context, math::Rectangle,
     text::atlas::SpriteKey, Error,
 };
 
 use crate::quad_gl::{DrawMode, Vertex};
-use glam::{vec2, Vec2};
+
 
 pub use crate::quad_gl::FilterMode;
 
 use slotmap::SlotMap;
+use tetra::math::Vec2;
 use std::sync::Arc;
 
 slotmap::new_key_type! {
@@ -210,9 +211,9 @@ impl Image {
     }
 
     /// Returns an Image from a rect inside this image.
-    pub fn sub_image(&self, rect: Rect) -> Image {
-        let width = rect.w as usize;
-        let height = rect.h as usize;
+    pub fn sub_image(&self, rect: Rectangle) -> Image {
+        let width = rect.width as usize;
+        let height = rect.height as usize;
         let mut bytes = vec![0; width * height * 4];
 
         let x = rect.x as usize;
@@ -430,12 +431,12 @@ pub fn render_target_msaa(width: u32, height: u32, sample_count: i32) -> RenderT
 
 #[derive(Debug, Clone)]
 pub struct DrawTextureParams {
-    pub dest_size: Option<Vec2>,
+    pub dest_size: Option<Vec2<f32>>,
 
     /// Part of texture to draw. If None - draw the whole texture.
     /// Good use example: drawing an image from texture atlas.
     /// Is None by default
-    pub source: Option<Rect>,
+    pub source: Option<Rectangle>,
 
     /// Rotation in radians
     pub rotation: f32,
@@ -451,7 +452,7 @@ pub struct DrawTextureParams {
     /// When `Some`, the coordinates are in screen-space.
     /// E.g. pivot (0,0) rotates around the top left corner of the screen, not of the
     /// texture.
-    pub pivot: Option<Vec2>,
+    pub pivot: Option<Vec2<f32>>,
 }
 
 impl Default for DrawTextureParams {
@@ -480,29 +481,29 @@ pub fn draw_texture_ex(
 ) {
     let context = get_context();
 
-    let [mut width, mut height] = texture.size().to_array();
+    let [mut width, mut height] = texture.size().into_array();
 
-    let Rect {
+    let Rectangle {
         x: mut sx,
         y: mut sy,
-        w: mut sw,
-        h: mut sh,
-    } = params.source.unwrap_or(Rect {
+        width: mut sw,
+        height: mut sh,
+    } = params.source.unwrap_or(Rectangle {
         x: 0.,
         y: 0.,
-        w: width,
-        h: height,
+        width,
+        height,
     });
 
     let texture_opt = context
         .texture_batcher
         .get(texture)
         .map(|(batched_texture, uv)| {
-            let [batched_width, batched_height] = batched_texture.size().to_array();
-            sx = ((sx / width) * uv.w + uv.x) * batched_width;
-            sy = ((sy / height) * uv.h + uv.y) * batched_height;
-            sw = (sw / width) * uv.w * batched_width;
-            sh = (sh / height) * uv.h * batched_height;
+            let [batched_width, batched_height] = batched_texture.size().into_array();
+            sx = ((sx / width) * uv.width + uv.x) * batched_width;
+            sy = ((sy / height) * uv.height + uv.y) * batched_height;
+            sw = (sw / width) * uv.width * batched_width;
+            sh = (sh / height) * uv.height * batched_height;
 
             width = batched_width;
             height = batched_height;
@@ -526,29 +527,29 @@ pub fn draw_texture_ex(
         h = -h;
     }
 
-    let pivot = params.pivot.unwrap_or(vec2(x + w / 2., y + h / 2.));
+    let pivot = params.pivot.unwrap_or(Vec2::new(x + w / 2., y + h / 2.));
     let m = pivot;
     let p = [
-        vec2(x, y) - pivot,
-        vec2(x + w, y) - pivot,
-        vec2(x + w, y + h) - pivot,
-        vec2(x, y + h) - pivot,
+        Vec2::new(x, y) - pivot,
+        Vec2::new(x + w, y) - pivot,
+        Vec2::new(x + w, y + h) - pivot,
+        Vec2::new(x, y + h) - pivot,
     ];
     let r = params.rotation;
     let p = [
-        vec2(
+        Vec2::new(
             p[0].x * r.cos() - p[0].y * r.sin(),
             p[0].x * r.sin() + p[0].y * r.cos(),
         ) + m,
-        vec2(
+        Vec2::new(
             p[1].x * r.cos() - p[1].y * r.sin(),
             p[1].x * r.sin() + p[1].y * r.cos(),
         ) + m,
-        vec2(
+        Vec2::new(
             p[2].x * r.cos() - p[2].y * r.sin(),
             p[2].x * r.sin() + p[2].y * r.cos(),
         ) + m,
-        vec2(
+        Vec2::new(
             p[3].x * r.cos() - p[3].y * r.sin(),
             p[3].x * r.sin() + p[3].y * r.cos(),
         ) + m,
@@ -775,11 +776,11 @@ impl Texture2D {
         height as f32
     }
 
-    pub fn size(&self) -> Vec2 {
+    pub fn size(&self) -> Vec2<f32> {
         let ctx = get_quad_context();
         let (width, height) = ctx.texture_size(self.raw_miniquad_id());
 
-        vec2(width as f32, height as f32)
+        Vec2::new(width as f32, height as f32)
     }
 
     /// Sets the [FilterMode] of this texture.
@@ -882,7 +883,7 @@ impl Batcher {
         self.unbatched.push(texture.weak_clone());
     }
 
-    pub fn get(&mut self, texture: &Texture2D) -> Option<(Texture2D, Rect)> {
+    pub fn get(&mut self, texture: &Texture2D) -> Option<(Texture2D, Rectangle)> {
         let id = SpriteKey::Texture(texture.raw_miniquad_id());
         let uv_rect = self.atlas.get_uv_rect(id)?;
         Some((Texture2D::unmanaged(self.atlas.texture()), uv_rect))

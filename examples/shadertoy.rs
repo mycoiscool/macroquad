@@ -105,7 +105,7 @@ async fn main() {
 
         gl_use_material(&material);
         match mesh {
-            Mesh::Plane => draw_plane(vec3(0., 2., 0.), vec2(5., 5.), Some(&ferris), WHITE),
+            Mesh::Plane => draw_plane(vec3(0., 2., 0.), Vec2::new(5., 5.), Some(&ferris), WHITE),
             Mesh::Sphere => draw_sphere(vec3(0., 6., 0.), 5., Some(&ferris), WHITE),
             Mesh::Cube => draw_cube(vec3(0., 5., 0.), vec3(10., 10., 10.), Some(&ferris), WHITE),
         }
@@ -115,7 +115,7 @@ async fn main() {
 
         let mut need_update = false;
 
-        widgets::Window::new(hash!(), vec2(20., 20.), vec2(470., 650.))
+        widgets::Window::new(hash!(), Vec2::new(20., 20.), Vec2::new(470., 650.))
             .label("Shader")
             .ui(&mut *root_ui(), |ui| {
                 ui.label(None, "Camera: ");
@@ -151,7 +151,7 @@ async fn main() {
                     match uniform {
                         Uniform::Float1(x) => {
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(200.0, 19.0))
+                                .size(Vec2::new(200.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, x);
 
@@ -161,14 +161,14 @@ async fn main() {
                         }
                         Uniform::Float2(x, y) => {
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(99.0, 19.0))
+                                .size(Vec2::new(99.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, x);
 
                             ui.same_line(0.0);
 
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(99.0, 19.0))
+                                .size(Vec2::new(99.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, y);
 
@@ -178,21 +178,21 @@ async fn main() {
                         }
                         Uniform::Float3(x, y, z) => {
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(65.0, 19.0))
+                                .size(Vec2::new(65.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, x);
 
                             ui.same_line(0.0);
 
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(65.0, 19.0))
+                                .size(Vec2::new(65.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, y);
 
                             ui.same_line(0.0);
 
                             widgets::InputText::new(hash!(hash!(), i))
-                                .size(vec2(65.0, 19.0))
+                                .size(Vec2::new(65.0, 19.0))
                                 .filter_numbers()
                                 .ui(ui, z);
 
@@ -209,7 +209,7 @@ async fn main() {
                             let cursor = canvas.cursor();
 
                             canvas.rect(
-                                Rect::new(cursor.x + 20.0, cursor.y, 50.0, 18.0),
+                                Rectangle::new(cursor.x + 20.0, cursor.y, 50.0, 18.0),
                                 Color::new(0.2, 0.2, 0.2, 1.0),
                                 Color::new(color.x, color.y, color.z, 1.0),
                             );
@@ -229,12 +229,12 @@ async fn main() {
                 TreeNode::new(hash!(), "Fragment shader")
                     .init_unfolded()
                     .ui(ui, |ui| {
-                        if ui.editbox(hash!(), vec2(440., 200.), &mut fragment_shader) {
+                        if ui.editbox(hash!(), Vec2::new(440., 200.), &mut fragment_shader) {
                             need_update = true;
                         };
                     });
                 ui.tree_node(hash!(), "Vertex shader", |ui| {
-                    if ui.editbox(hash!(), vec2(440., 300.), &mut vertex_shader) {
+                    if ui.editbox(hash!(), Vec2::new(440., 300.), &mut vertex_shader) {
                         need_update = true;
                     };
                 });
@@ -245,7 +245,7 @@ async fn main() {
             });
 
         if new_uniform_window {
-            widgets::Window::new(hash!(), vec2(100., 100.), vec2(200., 80.))
+            widgets::Window::new(hash!(), Vec2::new(100., 100.), Vec2::new(200., 80.))
                 .label("New uniform")
                 .ui(&mut *root_ui(), |ui| {
                     if ui.active_window_focused() == false {
@@ -287,7 +287,7 @@ async fn main() {
         }
 
         if colorpicker_window {
-            colorpicker_window &= widgets::Window::new(hash!(), vec2(140., 100.), vec2(210., 240.))
+            colorpicker_window &= widgets::Window::new(hash!(), Vec2::new(140., 100.), Vec2::new(210., 240.))
                 .label("Colorpicker")
                 .ui(&mut *root_ui(), |ui| {
                     if ui.active_window_focused() == false {
@@ -304,18 +304,18 @@ async fn main() {
                         .get_pixel(x.max(0).min(199) as u32, y.max(0).min(199) as u32);
 
                     canvas.rect(
-                        Rect::new(cursor.x, cursor.y, 200.0, 18.0),
+                        Rectangle::new(cursor.x, cursor.y, 200.0, 18.0),
                         Color::new(0.0, 0.0, 0.0, 1.0),
                         Color::new(color.r, color.g, color.b, 1.0),
                     );
                     canvas.image(
-                        Rect::new(cursor.x, cursor.y + 20.0, 200.0, 200.0),
+                        Rectangle::new(cursor.x, cursor.y + 20.0, 200.0, 200.0),
                         &color_picker_texture,
                     );
 
                     if x >= 0 && x < 200 && y >= 0 && y < 200 {
                         canvas.rect(
-                            Rect::new(mouse.0 - 3.5, mouse.1 - 3.5, 7.0, 7.0),
+                            Rectangle::new(mouse.0 - 3.5, mouse.1 - 3.5, 7.0, 7.0),
                             Color::new(0.3, 0.3, 0.3, 1.0),
                             Color::new(1.0, 1.0, 1.0, 1.0),
                         );

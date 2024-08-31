@@ -1,17 +1,17 @@
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{ElementState, Id, Layout, Ui, UiContent},
 };
 
 pub struct Tabbar<'a, 'b> {
     id: Id,
-    size: Vec2,
+    size: Vec2<f32>,
     selected_tab: Option<&'b mut u32>,
     tabs: &'a [&'a str],
 }
 
 impl<'a, 'b> Tabbar<'a, 'b> {
-    pub fn new(id: Id, size: Vec2, tabs: &'a [&'a str]) -> Tabbar<'a, 'b> {
+    pub fn new(id: Id, size: Vec2<f32>, tabs: &'a [&'a str]) -> Tabbar<'a, 'b> {
         Tabbar {
             id,
             size,
@@ -42,13 +42,13 @@ impl<'a, 'b> Tabbar<'a, 'b> {
             .unwrap_or_else(|| context.storage_u32.entry(self.id).or_insert(0));
 
         for (n, label) in self.tabs.iter().enumerate() {
-            let rect = Rect::new(
+            let rect = Rectangle::new(
                 pos.x + width * n as f32 + 1.,
                 pos.y,
                 width - 2.,
                 self.size.y,
             );
-            let hovered = rect.contains(context.input.mouse_position);
+            let hovered = rect.contains_point(context.input.mouse_position);
             let selected = n as u32 == selected;
 
             if context.focused && hovered && context.input.click_up {
@@ -63,7 +63,7 @@ impl<'a, 'b> Tabbar<'a, 'b> {
 
             context.window.painter.draw_element_background(
                 &context.style.tabbar_style,
-                rect.point(),
+                rect.top_left(),
                 rect.size(),
                 ElementState {
                     focused: context.focused,
@@ -75,8 +75,8 @@ impl<'a, 'b> Tabbar<'a, 'b> {
 
             context.window.painter.draw_element_content(
                 &context.style.tabbar_style,
-                pos + vec2(width * n as f32, 0.0),
-                vec2(width, self.size.y),
+                pos + Vec2::new(width * n as f32, 0.0),
+                Vec2::new(width, self.size.y),
                 &UiContent::Label((*label).into()),
                 ElementState {
                     focused: context.focused,
@@ -95,7 +95,7 @@ impl<'a, 'b> Tabbar<'a, 'b> {
 }
 
 impl Ui {
-    pub fn tabbar<'a>(&mut self, id: Id, size: Vec2, tabs: &'a [&'a str]) -> u32 {
+    pub fn tabbar<'a>(&mut self, id: Id, size: Vec2<f32>, tabs: &'a [&'a str]) -> u32 {
         Tabbar::new(id, size, tabs).ui(self)
     }
 }

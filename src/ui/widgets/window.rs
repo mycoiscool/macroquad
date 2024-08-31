@@ -1,13 +1,13 @@
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{ElementState, Id, Ui, UiContent, WindowContext},
 };
 
 #[derive(Debug, Clone)]
 pub struct Window {
     id: Id,
-    position: Vec2,
-    size: Vec2,
+    position: Vec2<f32>,
+    size: Vec2<f32>,
     close_button: bool,
     movable: bool,
     titlebar: bool,
@@ -15,7 +15,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(id: Id, position: Vec2, size: Vec2) -> Window {
+    pub fn new(id: Id, position: Vec2<f32>, size: Vec2<f32>) -> Window {
         Window {
             id,
             position,
@@ -102,7 +102,7 @@ impl Window {
             context.window.position.x + context.window.size.x - style.title_height + 1.,
             context.window.position.y + 2.,
         );
-        let rect = Rect::new(pos.x, pos.y, size.x as f32, size.y as f32);
+        let rect = Rectangle::new(pos.x, pos.y, size.x as f32, size.y as f32);
         let (hovered, clicked) = context.register_click_intention(rect);
 
         context.window.painter.draw_element_background(
@@ -144,7 +144,7 @@ impl Window {
                 context.window.painter.draw_element_content(
                     &context.style.window_titlebar_style,
                     position,
-                    vec2(size.x, style.title_height),
+                    Vec2::new(size.x, style.title_height),
                     &UiContent::Label(label.into()),
                     ElementState {
                         focused,
@@ -155,8 +155,8 @@ impl Window {
                 );
             }
             context.window.painter.draw_line(
-                vec2(position.x, position.y + style.title_height),
-                vec2(position.x + size.x, position.y + style.title_height),
+                Vec2::new(position.x, position.y + style.title_height),
+                Vec2::new(position.x + size.x, position.y + style.title_height),
                 style.window_titlebar_style.color(ElementState {
                     focused,
                     clicked: false,
@@ -185,7 +185,7 @@ impl WindowToken {
 }
 
 impl Ui {
-    pub fn window<F: FnOnce(&mut Ui)>(&mut self, id: Id, position: Vec2, size: Vec2, f: F) -> bool {
+    pub fn window<F: FnOnce(&mut Ui)>(&mut self, id: Id, position: Vec2<f32>, size: Vec2<f32>, f: F) -> bool {
         Window::new(id, position, size).titlebar(false).ui(self, f)
     }
 }

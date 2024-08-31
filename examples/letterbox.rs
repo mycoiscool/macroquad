@@ -11,7 +11,7 @@ async fn main() {
 
     // Setup camera for the virtual screen, that will render to 'render_target'
     let mut render_target_cam =
-        Camera2D::from_display_rect(Rect::new(0., 0., VIRTUAL_WIDTH, VIRTUAL_HEIGHT));
+        Camera2D::from_display_rect(Rectangle::new(0., 0., VIRTUAL_WIDTH, VIRTUAL_HEIGHT));
     render_target_cam.render_target = Some(render_target.clone());
 
     loop {
@@ -60,7 +60,7 @@ async fn main() {
             (screen_height() - (VIRTUAL_HEIGHT * scale)) * 0.5,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(VIRTUAL_WIDTH * scale, VIRTUAL_HEIGHT * scale)),
+                dest_size: Some(Vec2::new(VIRTUAL_WIDTH * scale, VIRTUAL_HEIGHT * scale)),
                 flip_y: true, // Must flip y otherwise 'render_target' will be upside down
                 ..Default::default()
             },

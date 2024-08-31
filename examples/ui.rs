@@ -150,7 +150,7 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
+        widgets::Window::new(hash!(), Vec2::new(400., 200.), Vec2::new(320., 400.))
             .label("Shop")
             .titlebar(true)
             .ui(&mut *root_ui(), |ui| {
@@ -166,7 +166,7 @@ async fn main() {
                 }
             });
 
-        widgets::Window::new(hash!(), vec2(100., 220.), vec2(542., 430.))
+        widgets::Window::new(hash!(), Vec2::new(100., 220.), Vec2::new(542., 430.))
             .label("Fitting window")
             .titlebar(true)
             .ui(&mut *root_ui(), |ui| {
@@ -178,7 +178,7 @@ async fn main() {
                 });
             });
 
-        widgets::Window::new(hash!(), vec2(470., 50.), vec2(300., 300.))
+        widgets::Window::new(hash!(), Vec2::new(470., 50.), Vec2::new(300., 300.))
             .label("Megaui Showcase Window")
             .ui(&mut *root_ui(), |ui| {
                 ui.tree_node(hash!(), "input", |ui| {
@@ -207,14 +207,14 @@ async fn main() {
                 });
                 ui.tree_node(hash!(), "buttons", |ui| {
                     widgets::Button::new(texture.clone())
-                        .size(vec2(120., 70.))
+                        .size(Vec2::new(120., 70.))
                         .ui(ui);
                     ui.same_line(0.);
-                    widgets::Button::new("Button").size(vec2(120., 70.)).ui(ui);
-                    widgets::Button::new("Button").size(vec2(120., 70.)).ui(ui);
+                    widgets::Button::new("Button").size(Vec2::new(120., 70.)).ui(ui);
+                    widgets::Button::new("Button").size(Vec2::new(120., 70.)).ui(ui);
                     ui.same_line(0.);
                     widgets::Button::new(texture.clone())
-                        .size(vec2(120., 70.))
+                        .size(Vec2::new(120., 70.))
                         .ui(ui);
                 });
                 ui.tree_node(hash!(), "sliders", |ui| {
@@ -223,11 +223,11 @@ async fn main() {
                 });
                 ui.tree_node(hash!(), "editbox 1", |ui| {
                     ui.label(None, "This is editbox!");
-                    ui.editbox(hash!(), vec2(285., 165.), &mut text0);
+                    ui.editbox(hash!(), Vec2::new(285., 165.), &mut text0);
                 });
                 ui.tree_node(hash!(), "editbox 2", |ui| {
                     ui.label(None, "This is editbox!");
-                    ui.editbox(hash!(), vec2(285., 165.), &mut text1);
+                    ui.editbox(hash!(), Vec2::new(285., 165.), &mut text1);
                 });
             });
 

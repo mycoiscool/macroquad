@@ -35,31 +35,31 @@ async fn main() {
     world.add_static_tiled_layer(static_colliders, 8., 8., 40, 1);
 
     let mut player = Player {
-        collider: world.add_actor(vec2(50.0, 80.0), 8, 8),
-        speed: vec2(0., 0.),
+        collider: world.add_actor(Vec2::new(50.0, 80.0), 8, 8),
+        speed: Vec2::new(0., 0.),
     };
 
     let mut platform = Platform {
-        collider: world.add_solid(vec2(170.0, 130.0), 32, 8),
+        collider: world.add_solid(Vec2::new(170.0, 130.0), 32, 8),
         speed: 50.,
     };
 
-    let camera = Camera2D::from_display_rect(Rect::new(0.0, 152.0, 320.0, -152.0));
+    let camera = Camera2D::from_display_rect(Rectangle::new(0.0, 152.0, 320.0, -152.0));
 
     loop {
         clear_background(BLACK);
 
         set_camera(&camera);
 
-        tiled_map.draw_tiles("main layer", Rect::new(0.0, 0.0, 320.0, 152.0), None);
+        tiled_map.draw_tiles("main layer", Rectangle::new(0.0, 0.0, 320.0, 152.0), None);
 
         // draw platform
         {
             let pos = world.solid_pos(platform.collider);
             tiled_map.spr_ex(
                 "tileset",
-                Rect::new(6.0 * 8.0, 0.0, 32.0, 8.0),
-                Rect::new(pos.x, pos.y, 32.0, 8.0),
+                Rectangle::new(6.0 * 8.0, 0.0, 32.0, 8.0),
+                Rectangle::new(pos.x, pos.y, 32.0, 8.0),
             )
         }
 
@@ -70,12 +70,12 @@ async fn main() {
 
             let pos = world.actor_pos(player.collider);
             if player.speed.x >= 0.0 {
-                tiled_map.spr("tileset", PLAYER_SPRITE, Rect::new(pos.x, pos.y, 8.0, 8.0));
+                tiled_map.spr("tileset", PLAYER_SPRITE, Rectangle::new(pos.x, pos.y, 8.0, 8.0));
             } else {
                 tiled_map.spr(
                     "tileset",
                     PLAYER_SPRITE,
-                    Rect::new(pos.x + 8.0, pos.y, -8.0, 8.0),
+                    Rectangle::new(pos.x + 8.0, pos.y, -8.0, 8.0),
                 );
             }
         }
@@ -83,7 +83,7 @@ async fn main() {
         // player movement control
         {
             let pos = world.actor_pos(player.collider);
-            let on_ground = world.collide_check(player.collider, pos + vec2(0., 1.));
+            let on_ground = world.collide_check(player.collider, pos + Vec2::new(0., 1.));
 
             if on_ground == false {
                 player.speed.y += 500. * get_frame_time();

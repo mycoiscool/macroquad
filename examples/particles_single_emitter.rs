@@ -22,11 +22,11 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        let camera = Camera2D::from_display_rect(Rect::new(0.0, 0.0, 100.0, 100.0));
+        let camera = Camera2D::from_display_rect(Rectangle::new(0.0, 0.0, 100.0, 100.0));
 
         set_camera(&camera);
 
-        emitter.draw(vec2(50., 50.));
+        emitter.draw(Vec2::new(50., 50.));
 
         next_frame().await
     }

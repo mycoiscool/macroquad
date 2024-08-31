@@ -284,7 +284,7 @@ struct GlState {
 }
 
 impl GlState {
-    fn model(&self) -> glam::Mat4 {
+    fn model(&self) -> glam::Mat4{
         *self.model_stack.last().unwrap()
     }
 }

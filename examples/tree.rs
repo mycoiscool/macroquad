@@ -29,8 +29,8 @@ fn tree(gl: &mut QuadGl, time: f64, deep: u32, angle: f32, tall: f32) {
 #[macroquad::main("Tree")]
 async fn main() {
     let camera = Camera2D {
-        zoom: vec2(1., 1.),
-        target: vec2(0.0, 0.5),
+        zoom: Vec2::new(1., 1.),
+        target: Vec2::new(0.0, 0.5),
         ..Default::default()
     };
 

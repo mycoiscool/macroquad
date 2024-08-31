@@ -4,7 +4,7 @@ pub trait ToBytes {
     fn to_bytes(&self) -> &[u8];
 }
 macro_rules! impl_tobytes {
-    ($t:tt) => {
+    ($t:ty) => {
         impl ToBytes for $t {
             fn to_bytes(&self) -> &[u8] {
                 unsafe {
@@ -20,10 +20,10 @@ macro_rules! impl_tobytes {
 
 impl_tobytes!(i32);
 impl_tobytes!(f32);
-impl_tobytes!(Vec2);
-impl_tobytes!(Vec3);
-impl_tobytes!(Vec4);
-impl_tobytes!(Mat4);
+impl_tobytes!(Vec2<f32>);
+impl_tobytes!(Vec3<f32>);
+impl_tobytes!(Vec4<f32>);
+impl_tobytes!(Mat4<f32>);
 
 impl<T: ToBytes, const N: usize> ToBytes for &[T; N] {
     fn to_bytes(&self) -> &[u8] {

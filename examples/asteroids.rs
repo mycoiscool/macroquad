@@ -3,21 +3,21 @@ use macroquad::prelude::*;
 const SHIP_HEIGHT: f32 = 25.;
 const SHIP_BASE: f32 = 22.;
 struct Ship {
-    pos: Vec2,
+    pos: Vec2<f32>,
     rot: f32,
-    vel: Vec2,
+    vel: Vec2<f32>  ,
 }
 
 struct Bullet {
-    pos: Vec2,
-    vel: Vec2,
+    pos: Vec2<f32>,
+    vel: Vec2<f32>,
     shot_at: f64,
     collided: bool,
 }
 
 struct Asteroid {
-    pos: Vec2,
-    vel: Vec2,
+    pos: Vec2<f32>,
+    vel: Vec2<f32>,
     rot: f32,
     rot_speed: f32,
     size: f32,
@@ -25,7 +25,7 @@ struct Asteroid {
     collided: bool,
 }
 
-fn wrap_around(v: &Vec2) -> Vec2 {
+fn wrap_around(v: &Vec2<f32>) -> Vec2<f32> {
     let mut vr = Vec2::new(v.x, v.y);
     if vr.x > screen_width() {
         vr.x = 0.;
@@ -88,7 +88,7 @@ async fn main() {
                     asteroids.push(Asteroid {
                         pos: screen_center
                             + Vec2::new(rand::gen_range(-1., 1.), rand::gen_range(-1., 1.))
-                                .normalize()
+                                .normalized()
                                 * screen_width().min(screen_height())
                                 / 2.,
                         vel: Vec2::new(rand::gen_range(-1., 1.), rand::gen_range(-1., 1.)),
@@ -134,8 +134,8 @@ async fn main() {
 
         // Euler integration
         ship.vel += acc;
-        if ship.vel.length() > 5. {
-            ship.vel = ship.vel.normalize() * 5.;
+        if ship.vel.magnitude() > 5. {
+            ship.vel = ship.vel.normalized() * 5.;
         }
         ship.pos += ship.vel;
         ship.pos = wrap_around(&ship.pos);
@@ -158,14 +158,14 @@ async fn main() {
         let mut new_asteroids = Vec::new();
         for asteroid in asteroids.iter_mut() {
             // Asteroid/ship collision
-            if (asteroid.pos - ship.pos).length() < asteroid.size + SHIP_HEIGHT / 3. {
+            if (asteroid.pos - ship.pos).magnitude() < asteroid.size + SHIP_HEIGHT / 3. {
                 gameover = true;
                 break;
             }
 
             // Asteroid/bullet collision
             for bullet in bullets.iter_mut() {
-                if (asteroid.pos - bullet.pos).length() < asteroid.size {
+                if (asteroid.pos - bullet.pos).magnitude() < asteroid.size {
                     asteroid.collided = true;
                     bullet.collided = true;
 
@@ -173,7 +173,7 @@ async fn main() {
                     if asteroid.sides > 3 {
                         new_asteroids.push(Asteroid {
                             pos: asteroid.pos,
-                            vel: Vec2::new(bullet.vel.y, -bullet.vel.x).normalize()
+                            vel: Vec2::new(bullet.vel.y, -bullet.vel.x).normalized()
                                 * rand::gen_range(1., 3.),
                             rot: rand::gen_range(0., 360.),
                             rot_speed: rand::gen_range(-2., 2.),
@@ -183,7 +183,7 @@ async fn main() {
                         });
                         new_asteroids.push(Asteroid {
                             pos: asteroid.pos,
-                            vel: Vec2::new(-bullet.vel.y, bullet.vel.x).normalize()
+                            vel: Vec2::new(-bullet.vel.y, bullet.vel.x).normalized()
                                 * rand::gen_range(1., 3.),
                             rot: rand::gen_range(0., 360.),
                             rot_speed: rand::gen_range(-2., 2.),
@@ -229,15 +229,15 @@ async fn main() {
             )
         }
 
-        let v1 = Vec2::new(
+        let v1 = glam::Vec2::new(
             ship.pos.x + rotation.sin() * SHIP_HEIGHT / 2.,
             ship.pos.y - rotation.cos() * SHIP_HEIGHT / 2.,
         );
-        let v2 = Vec2::new(
+        let v2 = glam::Vec2::new(
             ship.pos.x - rotation.cos() * SHIP_BASE / 2. - rotation.sin() * SHIP_HEIGHT / 2.,
             ship.pos.y - rotation.sin() * SHIP_BASE / 2. + rotation.cos() * SHIP_HEIGHT / 2.,
         );
-        let v3 = Vec2::new(
+        let v3 = glam::Vec2::new(
             ship.pos.x + rotation.cos() * SHIP_BASE / 2. - rotation.sin() * SHIP_HEIGHT / 2.,
             ship.pos.y + rotation.sin() * SHIP_BASE / 2. + rotation.cos() * SHIP_HEIGHT / 2.,
         );

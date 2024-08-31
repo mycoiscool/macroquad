@@ -4,6 +4,8 @@ use macroquad::prelude::*;
 
 use macroquad::ui::{hash, root_ui, widgets::Window, Ui};
 
+use macroquad::math::Vec2;
+
 pub struct ProfilerState {
     fps_buffer: Vec<f32>,
     frames_buffer: Vec<telemetry::Frame>,
@@ -13,13 +15,13 @@ pub struct ProfilerState {
 }
 
 pub struct ProfilerParams {
-    pub fps_counter_pos: Vec2,
+    pub fps_counter_pos: Vec2<f32>,
 }
 
 impl Default for ProfilerParams {
     fn default() -> ProfilerParams {
         ProfilerParams {
-            fps_counter_pos: vec2(10., 10.),
+            fps_counter_pos: Vec2::new(10., 10.),
         }
     }
 }
@@ -49,9 +51,9 @@ fn profiler_window(ui: &mut Ui, state: &mut ProfilerState) {
     let mut canvas = ui.canvas();
     let w = 515.0;
     let h = 40.0;
-    let pos = canvas.request_space(vec2(w, h));
+    let pos = canvas.request_space(Vec2::new(w, h));
 
-    let rect = Rect::new(pos.x, pos.y, w, h);
+    let rect = Rectangle::new(pos.x, pos.y, w, h);
     canvas.rect(rect, Color::new(0.5, 0.5, 0.5, 1.0), None);
 
     let (mouse_x, mouse_y) = mouse_position();
@@ -59,7 +61,7 @@ fn profiler_window(ui: &mut Ui, state: &mut ProfilerState) {
     let mut selected_frame = None;
 
     // select the slowest frame among the ones close to the mouse cursor
-    if rect.contains(vec2(mouse_x, mouse_y)) && state.frames_buffer.len() >= 1 {
+    if rect.contains_point(Vec2::new(mouse_x, mouse_y)) && state.frames_buffer.len() >= 1 {
         let x = ((mouse_x - pos.x - 2.) / w * FRAMES_BUFFER_CAPACITY as f32) as i32;
 
         let min = clamp(x - 2, 0, state.frames_buffer.len() as i32 - 1) as usize;
@@ -92,8 +94,8 @@ fn profiler_window(ui: &mut Ui, state: &mut ProfilerState) {
         let t = macroquad::math::clamp(frame.full_frame_time * 1000.0, 0.0, h);
 
         canvas.line(
-            vec2(pos.x + x + 2., pos.y + h - 1.0),
-            vec2(pos.x + x + 2., pos.y + h - t),
+            Vec2::new(pos.x + x + 2., pos.y + h - 1.0),
+            Vec2::new(pos.x + x + 2., pos.y + h - t),
             color,
         );
     }
@@ -135,14 +137,14 @@ fn profiler_window(ui: &mut Ui, state: &mut ProfilerState) {
         .or_else(|| state.frames_buffer.get(0));
 
     ui.separator();
-    ui.group(hash!(), vec2(355., 300.), |ui| {
+    ui.group(hash!(), Vec2::new(355., 300.), |ui| {
         if let Some(frame) = frame {
             for (n, zone) in frame.zones.iter().enumerate() {
                 zone_ui(ui, zone, n + 1);
             }
         }
     });
-    ui.group(hash!(), vec2(153., 300.), |ui| {
+    ui.group(hash!(), Vec2::new(153., 300.), |ui| {
         let queries = telemetry::gpu_queries();
 
         for query in queries {
@@ -197,14 +199,14 @@ pub fn profiler(params: ProfilerParams) {
         sum += time;
     }
 
-    let selectable_rect = Rect::new(
+    let selectable_rect = Rectangle::new(
         params.fps_counter_pos.x,
         params.fps_counter_pos.y + 40.0,
         100.0,
         100.0,
     );
 
-    if selectable_rect.contains(mouse_position().into()) {
+    if selectable_rect.contains_point(mouse_position().into()) {
         draw_rectangle(
             selectable_rect.x,
             selectable_rect.y,
@@ -233,13 +235,13 @@ pub fn profiler(params: ProfilerParams) {
     if state.profiler_window_opened {
         Window::new(
             hash!(),
-            vec2(params.fps_counter_pos.x, params.fps_counter_pos.y + 150.0),
-            vec2(525., 450.),
+            Vec2::new(params.fps_counter_pos.x, params.fps_counter_pos.y + 150.0),
+            Vec2::new(525., 450.),
         )
         .ui(&mut *root_ui(), |ui| {
             let tab = ui.tabbar(
                 hash!(),
-                vec2(300.0, 20.0),
+                Vec2::new(300.0, 20.0),
                 &["profiler", "scene", "frame", "log"],
             );
 

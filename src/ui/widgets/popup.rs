@@ -6,11 +6,11 @@ use crate::{
 /// Borderless subwindow drawn on top of everything
 pub struct Popup {
     id: Id,
-    size: Vec2,
+    size: Vec2<f32>,
 }
 
 impl Popup {
-    pub fn new(id: Id, size: Vec2) -> Popup {
+    pub fn new(id: Id, size: Vec2<f32>) -> Popup {
         Popup { id, size }
     }
 
@@ -27,7 +27,7 @@ impl Popup {
 }
 
 impl Ui {
-    pub fn popup<F: FnOnce(&mut Ui)>(&mut self, id: Id, size: Vec2, f: F) {
+    pub fn popup<F: FnOnce(&mut Ui)>(&mut self, id: Id, size: Vec2<f32>, f: F) {
         Popup::new(id, size).ui(self, f)
     }
 }

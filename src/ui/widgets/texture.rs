@@ -1,11 +1,11 @@
 use crate::{
-    math::{Rect, Vec2},
+    math::{Rectangle, Vec2},
     texture::Texture2D,
     ui::{Layout, Ui},
 };
 
 pub struct Texture {
-    position: Option<Vec2>,
+    position: Option<Vec2<f32>>,
     w: f32,
     h: f32,
     texture: Texture2D,
@@ -25,7 +25,7 @@ impl Texture {
         Texture { w, h, ..self }
     }
 
-    pub fn position<P: Into<Option<Vec2>>>(self, position: P) -> Self {
+    pub fn position<P: Into<Option<Vec2<f32>>>>(self, position: P) -> Self {
         let position = position.into();
 
         Texture { position, ..self }
@@ -43,10 +43,10 @@ impl Texture {
         context
             .window
             .painter
-            .draw_raw_texture(Rect::new(pos.x, pos.y, self.w, self.h), &self.texture);
+            .draw_raw_texture(Rectangle::new(pos.x, pos.y, self.w, self.h), &self.texture);
 
-        let rect = Rect::new(pos.x, pos.y, size.x as f32, size.y as f32);
-        let hovered = rect.contains(context.input.mouse_position);
+        let rect = Rectangle::new(pos.x, pos.y, size.x as f32, size.y as f32);
+        let hovered = rect.contains_point(context.input.mouse_position);
 
         context.focused && hovered && context.input.click_up
     }

@@ -32,7 +32,7 @@ impl From<miniquad::TouchPhase> for TouchPhase {
 pub struct Touch {
     pub id: u64,
     pub phase: TouchPhase,
-    pub position: Vec2,
+    pub position: Vec2<f32>,
 }
 
 /// Constrain mouse to window
@@ -58,14 +58,14 @@ pub fn mouse_position() -> (f32, f32) {
 }
 
 /// Return mouse position in range [-1; 1].
-pub fn mouse_position_local() -> Vec2 {
+pub fn mouse_position_local() -> Vec2<f32> {
     let (pixels_x, pixels_y) = mouse_position();
 
     convert_to_local(Vec2::new(pixels_x, pixels_y))
 }
 
 /// Returns the difference between the current mouse position and the mouse position on the previous frame.
-pub fn mouse_delta_position() -> Vec2 {
+pub fn mouse_delta_position() -> Vec2<f32> {
     let context = get_context();
 
     let current_position = mouse_position_local();
@@ -199,7 +199,7 @@ pub fn is_mouse_button_released(btn: MouseButton) -> bool {
 }
 
 /// Convert a position in pixels to a position in the range [-1; 1].
-fn convert_to_local(pixel_pos: Vec2) -> Vec2 {
+fn convert_to_local(pixel_pos: Vec2<f32>) -> Vec2<f32> {
     Vec2::new(pixel_pos.x / screen_width(), pixel_pos.y / screen_height()) * 2.0
         - Vec2::new(1.0, 1.0)
 }

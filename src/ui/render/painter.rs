@@ -3,7 +3,7 @@
 
 use crate::{
     color::Color,
-    math::{vec2, Rect, RectOffset, Vec2},
+    math::{vec2, Rectangle, RectOffset, Vec2},
     text::{
         atlas::{Atlas, SpriteKey},
         Font, TextDimensions,
@@ -26,47 +26,47 @@ pub struct ElementState {
 #[derive(Debug, Clone)]
 pub(crate) enum DrawCommand {
     DrawCharacter {
-        dest: Rect,
-        source: Rect,
+        dest: Rectangle,
+        source: Rectangle,
         color: Color,
     },
     DrawRect {
-        rect: Rect,
-        source: Rect,
+        rect: Rectangle,
+        source: Rectangle,
         fill: Option<Color>,
         stroke: Option<Color>,
     },
     DrawSprite {
-        rect: Rect,
-        source: Rect,
+        rect: Rectangle,
+        source: Rectangle,
         color: Color,
         offsets: Option<RectOffset>,
         offsets_uv: Option<RectOffset>,
     },
     DrawTriangle {
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2,
-        source: Rect,
+        p0: Vec2<f32>,
+        p1: Vec2<f32>,
+        p2: Vec2<f32>,
+        source: Rectangle,
         color: Color,
     },
     DrawLine {
-        start: Vec2,
-        end: Vec2,
-        source: Rect,
+        start: Vec2<f32>,
+        end: Vec2<f32>,
+        source: Rectangle,
         color: Color,
     },
     DrawRawTexture {
-        rect: Rect,
+        rect: Rectangle,
         texture: Texture2D,
     },
     Clip {
-        rect: Option<Rect>,
+        rect: Option<Rectangle>,
     },
 }
 
 impl DrawCommand {
-    pub fn offset(&self, offset: Vec2) -> DrawCommand {
+    pub fn offset(&self, offset: Vec2<f32>) -> DrawCommand {
         match self.clone() {
             DrawCommand::DrawCharacter {
                 dest,
@@ -149,7 +149,7 @@ impl DrawCommand {
 
 pub(crate) struct Painter {
     pub commands: Vec<DrawCommand>,
-    pub clipping_zone: Option<Rect>,
+    pub clipping_zone: Option<Rectangle>,
     font_atlas: Arc<Mutex<Atlas>>,
 }
 
@@ -182,7 +182,7 @@ impl Painter {
         0.
     }
 
-    pub fn content_with_margins_size(&self, style: &Style, content: &UiContent) -> Vec2 {
+    pub fn content_with_margins_size(&self, style: &Style, content: &UiContent) -> Vec2<f32> {
         let font = &mut *style.font.lock().unwrap();
         let font_size = style.font_size;
 
@@ -197,7 +197,7 @@ impl Painter {
             UiContent::Texture(texture) => (texture.width(), texture.height()),
         };
 
-        vec2(size.0, size.1)
+        Vec2::new(size.0, size.1)
             + Vec2::new(
                 margin.left + margin.right + background_margin.left + background_margin.right,
                 margin.top + margin.bottom + background_margin.top + background_margin.bottom,
@@ -207,8 +207,8 @@ impl Painter {
     pub fn draw_element_background(
         &mut self,
         style: &Style,
-        pos: Vec2,
-        size: Vec2,
+        pos: Vec2<f32>,
+        size: Vec2<f32>,
         element_state: ElementState,
     ) {
         let color = style.color(element_state);
@@ -216,13 +216,13 @@ impl Painter {
         let background_margin = style.background_margin.unwrap_or_default();
         if let Some(background) = style.background_sprite(element_state) {
             self.draw_sprite(
-                Rect::new(pos.x, pos.y, size.x, size.y),
+                Rectangle::new(pos.x, pos.y, size.x, size.y),
                 background,
                 color,
                 Some(background_margin),
             );
         } else {
-            self.draw_rect(Rect::new(pos.x, pos.y, size.x, size.y), None, color);
+            self.draw_rect(Rectangle::new(pos.x, pos.y, size.x, size.y), None, color);
         }
     }
 
@@ -231,7 +231,7 @@ impl Painter {
     pub fn draw_element_label(
         &mut self,
         style: &Style,
-        pos: Vec2,
+        pos: Vec2<f32>,
         label: &str,
         element_state: ElementState,
     ) {
@@ -261,8 +261,8 @@ impl Painter {
     pub fn draw_element_content(
         &mut self,
         style: &Style,
-        element_pos: Vec2,
-        element_size: Vec2,
+        element_pos: Vec2<f32>,
+        element_size: Vec2<f32>,
         content: &UiContent,
         element_state: ElementState,
     ) {
@@ -293,13 +293,13 @@ impl Painter {
 
                 let pos = element_pos + Vec2::new(margin.left + background_margin.left, top_coord);
                 let size = element_size
-                    - vec2(
+                    - Vec2::new(
                         background_margin.left + background_margin.right,
                         background_margin.top + background_margin.bottom,
                     )
-                    - vec2(margin.left + margin.right, margin.top + margin.bottom);
+                    - Vec2::new(margin.left + margin.right, margin.top + margin.bottom);
 
-                self.draw_raw_texture(Rect::new(pos.x, pos.y, size.x, size.y), texture);
+                self.draw_raw_texture(Rectangle::new(pos.x, pos.y, size.x, size.y), texture);
             }
         }
     }
@@ -318,7 +318,7 @@ impl Painter {
     pub fn draw_character(
         &mut self,
         character: char,
-        position: Vec2,
+        position: Vec2<f32>,
         color: Color,
         font: &mut Font,
         font_size: u16,
@@ -335,16 +335,16 @@ impl Painter {
                 .get(font_data.sprite)
                 .unwrap();
             let left_coord = font_data.offset_x as f32;
-            let top_coord = -glyph.rect.h - font_data.offset_y as f32;
-            let dest = Rect::new(
+            let top_coord = -glyph.rect.height - font_data.offset_y as f32;
+            let dest = Rectangle::new(
                 left_coord + position.x,
                 top_coord + position.y,
-                glyph.rect.w,
-                glyph.rect.h,
+                glyph.rect.width,
+                glyph.rect.height,
             );
             if self
                 .clipping_zone
-                .map_or(false, |clip| !clip.overlaps(&dest))
+                .map_or(false, |clip| !clip.intersects(&dest))
             {
                 let advance = font_data.advance;
                 return Some(advance);
@@ -373,13 +373,13 @@ impl Painter {
     pub fn draw_label<T: Into<LabelParams>>(
         &mut self,
         label: &str,
-        position: Vec2,
+        position: Vec2<f32>,
         params: T,
         font: &mut Font,
         font_size: u16,
     ) {
         if self.clipping_zone.map_or(false, |clip| {
-            !clip.overlaps(&Rect::new(position.x - 150., position.y - 25., 200., 50.))
+            !clip.intersects(&Rectangle::new(position.x - 150., position.y - 25., 200., 50.))
         }) {
             return;
         }
@@ -387,7 +387,7 @@ impl Painter {
         let params = params.into();
 
         let mut total_width = 0.;
-        let position = vec2(position.x.trunc(), position.y.trunc());
+        let position = Vec2::new(position.x.trunc(), position.y.trunc());
         for character in label.chars() {
             if let Some(advance) = self.draw_character(
                 character,
@@ -401,10 +401,10 @@ impl Painter {
         }
     }
 
-    pub fn draw_raw_texture(&mut self, rect: Rect, texture: &Texture2D) {
+    pub fn draw_raw_texture(&mut self, rect: Rectangle, texture: &Texture2D) {
         if self
             .clipping_zone
-            .map_or(false, |clip| !clip.overlaps(&rect))
+            .map_or(false, |clip| !clip.intersects(&rect))
         {
             return;
         }
@@ -415,14 +415,14 @@ impl Painter {
         })
     }
 
-    pub fn draw_rect<S, T>(&mut self, rect: Rect, stroke: S, fill: T)
+    pub fn draw_rect<S, T>(&mut self, rect: Rectangle, stroke: S, fill: T)
     where
         S: Into<Option<Color>>,
         T: Into<Option<Color>>,
     {
         if self
             .clipping_zone
-            .map_or(false, |clip| !clip.overlaps(&rect))
+            .map_or(false, |clip| !clip.intersects(&rect))
         {
             return;
         }
@@ -443,14 +443,14 @@ impl Painter {
 
     pub fn draw_sprite(
         &mut self,
-        rect: Rect,
+        rect: Rectangle,
         sprite: SpriteKey,
         color: Color,
         margin: Option<RectOffset>,
     ) {
         if self
             .clipping_zone
-            .map_or(false, |clip| !clip.overlaps(&rect))
+            .map_or(false, |clip| !clip.intersects(&rect))
         {
             return;
         }
@@ -474,12 +474,12 @@ impl Painter {
     }
 
     #[allow(dead_code)]
-    pub fn draw_triangle<T>(&mut self, p0: Vec2, p1: Vec2, p2: Vec2, color: T)
+    pub fn draw_triangle<T>(&mut self, p0: Vec2<f32>, p1: Vec2<f32>, p2: Vec2<f32>, color: T)
     where
         T: Into<Color>,
     {
         if self.clipping_zone.map_or(false, |clip| {
-            !clip.contains(p0) && !clip.contains(p1) && !clip.contains(p2)
+            !clip.contains_point(p0) && !clip.contains_point(p1) && !clip.contains_point(p2)
         }) {
             return;
         }
@@ -500,10 +500,10 @@ impl Painter {
         })
     }
 
-    pub fn draw_line<T: Into<Color>>(&mut self, start: Vec2, end: Vec2, color: T) {
+    pub fn draw_line<T: Into<Color>>(&mut self, start: Vec2<f32>, end: Vec2<f32>, color: T) {
         if self
             .clipping_zone
-            .map_or(false, |clip| !clip.contains(start) && !clip.contains(end))
+            .map_or(false, |clip| !clip.contains_point(start) && !clip.contains_point(end))
         {
             return;
         }
@@ -523,18 +523,18 @@ impl Painter {
     }
 
     #[rustfmt::skip]
-    pub fn clip<T: Into<Option<Rect>>>(&mut self, rect: T) {
+    pub fn clip<T: Into<Option<Rectangle>>>(&mut self, rect: T) {
         let rect = rect.into();
 
         self.clipping_zone = if let Some(rect) = rect {
-            Some(self.clipping_zone.and_then(|old_rect| old_rect.intersect(rect)).unwrap_or(rect))
+            Some(self.clipping_zone.and_then(|old_rect| old_rect.intersect_2(rect)).unwrap_or(rect))
         } else {
             None
         };
 
         let scaled_clipping_zone = self.clipping_zone.map(|rect| {
             let dpi = miniquad::window::dpi_scale();
-            Rect::new(rect.x * dpi, rect.y * dpi, rect.w * dpi, rect.h * dpi)
+            Rectangle::new(rect.x * dpi, rect.y * dpi, rect.width * dpi, rect.height * dpi)
         });
         self.add_command(DrawCommand::Clip { rect: scaled_clipping_zone });
     }

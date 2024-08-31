@@ -215,7 +215,7 @@ async fn main() {
     loop {
         clear_background(GRAY);
 
-        root_ui().group(hash!(), vec2(70.0, 100.0), |ui| {
+        root_ui().group(hash!(), Vec2::new(70.0, 100.0), |ui| {
             ui.label(None, "Window 1");
 
             if ui.button(None, "Skin 1") {
@@ -229,7 +229,7 @@ async fn main() {
             }
         });
         root_ui().same_line(0.);
-        root_ui().group(hash!(), vec2(70.0, 100.0), |ui| {
+        root_ui().group(hash!(), Vec2::new(70.0, 100.0), |ui| {
             ui.label(None, "Window 2");
             if ui.button(None, "Skin 1") {
                 window2_skin = skin1.clone();
@@ -244,22 +244,22 @@ async fn main() {
 
         root_ui().push_skin(&window1_skin);
 
-        root_ui().window(hash!(), vec2(20., 250.), vec2(300., 300.), |ui| {
+        root_ui().window(hash!(), Vec2::new(20., 250.), Vec2::new(300., 300.), |ui| {
             widgets::Button::new("Play")
-                .position(vec2(65.0, 15.0))
+                .position(Vec2::new(65.0, 15.0))
                 .ui(ui);
             widgets::Button::new("Options")
-                .position(vec2(40.0, 75.0))
+                .position(Vec2::new(40.0, 75.0))
                 .ui(ui);
 
             widgets::Button::new("Quit")
-                .position(vec2(65.0, 195.0))
+                .position(Vec2::new(65.0, 195.0))
                 .ui(ui);
         });
         root_ui().pop_skin();
 
         root_ui().push_skin(&window2_skin);
-        root_ui().window(hash!(), vec2(250., 20.), vec2(500., 250.), |ui| {
+        root_ui().window(hash!(), Vec2::new(250., 20.), Vec2::new(500., 250.), |ui| {
             ui.checkbox(hash!(), "Checkbox 1", &mut checkbox);
             ui.combo_box(
                 hash!(),
@@ -271,10 +271,10 @@ async fn main() {
             ui.drag(hash!(), "Drag", None, &mut number);
 
             widgets::Button::new("Apply")
-                .position(vec2(80.0, 150.0))
+                .position(Vec2::new(80.0, 150.0))
                 .ui(ui);
             widgets::Button::new("Cancel")
-                .position(vec2(280.0, 150.0))
+                .position(Vec2::new(280.0, 150.0))
                 .ui(ui);
         });
         root_ui().pop_skin();

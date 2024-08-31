@@ -37,6 +37,7 @@
 //!```
 
 use miniquad::*;
+use tetra::math::{Mat4, Vec2};
 
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
@@ -152,7 +153,7 @@ use crate::{
     ui::ui_context::UiContext,
 };
 
-use glam::{vec2, Mat4, Vec2};
+
 
 pub(crate) mod thread_assert {
     static mut THREAD_ID: Option<std::thread::ThreadId> = None;
@@ -190,9 +191,9 @@ struct Context {
     touches: HashMap<u64, input::Touch>,
     chars_pressed_queue: Vec<char>,
     chars_pressed_ui_queue: Vec<char>,
-    mouse_position: Vec2,
-    last_mouse_position: Option<Vec2>,
-    mouse_wheel: Vec2,
+    mouse_position: Vec2<f32>,
+    last_mouse_position: Option<Vec2<f32>>,
+    mouse_wheel: Vec2<f32>,
 
     prevent_quit_event: bool,
     quit_requested: bool,
@@ -202,7 +203,7 @@ struct Context {
     input_events: Vec<Vec<MiniquadInputEvent>>,
 
     gl: QuadGl,
-    camera_matrix: Option<Mat4>,
+    camera_matrix: Option<Mat4<f32>>,
 
     ui_context: UiContext,
     coroutines_context: experimental::coroutines::CoroutinesContext,
@@ -319,9 +320,9 @@ impl Context {
             mouse_pressed: HashSet::new(),
             mouse_released: HashSet::new(),
             touches: HashMap::new(),
-            mouse_position: vec2(0., 0.),
+            mouse_position: Vec2::new(0., 0.),
             last_mouse_position: None,
-            mouse_wheel: vec2(0., 0.),
+            mouse_wheel: Vec2::new(0., 0.),
 
             prevent_quit_event: false,
             quit_requested: false,
@@ -439,11 +440,33 @@ impl Context {
         let dpi = miniquad::window::dpi_scale();
 
         glam::Mat4::orthographic_rh_gl(0., width / dpi, height / dpi, 0., -1., 1.)
+
+        /* let left = 0.;
+        let right = width / dpi;
+        let bottom = 0.;
+        let top = height / dpi;
+        let near = -1.;
+        let far = 1.;
+
+        let a = 2.0 / (right - left);
+        let b = 2.0 / (top - bottom);
+        let c = -2.0 / (far - near);
+        let tx = -(right + left) / (right - left);
+        let ty = -(top + bottom) / (top - bottom);
+        let tz = -(far + near) / (far - near);
+
+        Mat4::from_col_arrays([
+            [a, 0.0, 0.0, 0.0], 
+            [0.0, b, 0.0, 0.0],
+            [0.0, 0.0, c, 0.0],
+            [tx, ty, tz, 1.0],]
+        ) */
+
     }
 
     pub(crate) fn projection_matrix(&self) -> glam::Mat4 {
         if let Some(matrix) = self.camera_matrix {
-            matrix
+            glam::Mat4::from_cols_array(&matrix.into_col_array())
         } else {
             self.pixel_perfect_projection_matrix()
         }
@@ -452,7 +475,8 @@ impl Context {
     pub(crate) fn perform_render_passes(&mut self) {
         let matrix = self.projection_matrix();
 
-        self.gl.draw(get_quad_context(), matrix);
+        /* let matrix: glam::Mat4 = glam::Mat4::from_cols_array(&matrix.into_col_array());  */
+        self.gl.draw(get_quad_context(), matrix.into());
     }
 }
 

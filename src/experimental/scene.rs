@@ -345,7 +345,7 @@ struct Scene {
     nodes: Vec<Option<Cell>>,
     arena: arena::Arena,
     camera: [Option<Camera2D>; 4],
-    camera_pos: crate::Vec2,
+    camera_pos: crate::Vec2<f32>,
 
     acc: f64,
     current_time: f64,
@@ -364,7 +364,7 @@ impl Scene {
             arena: arena::Arena::new(),
             free_nodes: Vec::new(),
             camera: [Some(Camera2D::default()), None, None, None],
-            camera_pos: crate::vec2(0., 0.),
+            camera_pos: crate::Vec2::new(0., 0.),
             acc: 0.0,
             current_time: crate::time::get_time(),
             in_fixed_update: false,
@@ -645,7 +645,7 @@ pub fn get_untyped_node(handle: HandleUntyped) -> Option<RefMutAny<'static>> {
     unsafe { get_scene() }.get_any(handle)
 }
 
-pub fn camera_pos() -> crate::Vec2 {
+pub fn camera_pos() -> crate::Vec2<f32> {
     unsafe { get_scene() }.camera_pos
 }
 

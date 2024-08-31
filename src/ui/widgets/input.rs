@@ -6,11 +6,11 @@ use crate::{
 pub struct InputText<'a> {
     id: Id,
     label: &'a str,
-    size: Option<Vec2>,
+    size: Option<Vec2<f32>>,
     password: bool,
     numbers: bool,
     ratio: f32,
-    pos: Option<Vec2>,
+    pos: Option<Vec2<f32>>,
 }
 
 impl<'a> InputText<'a> {
@@ -38,14 +38,14 @@ impl<'a> InputText<'a> {
         }
     }
 
-    pub fn size(self, size: Vec2) -> Self {
+    pub fn size(self, size: Vec2<f32>) -> Self {
         Self {
             size: Some(size),
             ..self
         }
     }
 
-    pub fn position(self, pos: Vec2) -> Self {
+    pub fn position(self, pos: Vec2<f32>) -> Self {
         Self {
             pos: Some(pos),
             ..self
@@ -75,8 +75,8 @@ impl<'a> InputText<'a> {
             &UiContent::Label((&*data).into()),
         );
 
-        let size = self.size.unwrap_or(vec2(
-            context.window.cursor.area.w - context.style.margin * 2. - context.window.cursor.ident,
+        let size = self.size.unwrap_or(Vec2::new(
+            context.window.cursor.area.width - context.style.margin * 2. - context.window.cursor.ident,
             label_size.y.max(19.),
         ));
 

@@ -1,4 +1,4 @@
-use macroquad::math::{vec2, Rect, Vec2};
+use macroquad::math::{vec2, Rectangle, Vec2};
 
 use std::collections::HashSet;
 
@@ -39,7 +39,7 @@ pub struct World {
 struct Collider {
     collidable: bool,
     squished: bool,
-    pos: Vec2,
+    pos: Vec2<f32>,
     width: i32,
     height: i32,
     x_remainder: f32,
@@ -50,8 +50,8 @@ struct Collider {
 }
 
 impl Collider {
-    pub fn rect(&self) -> Rect {
-        Rect::new(
+    pub fn rect(&self) -> Rectangle {
+        Rectangle::new(
             self.pos.x,
             self.pos.y,
             self.width as f32,
@@ -91,7 +91,7 @@ impl World {
             tag,
         });
     }
-    pub fn add_actor(&mut self, pos: Vec2, width: i32, height: i32) -> Actor {
+    pub fn add_actor(&mut self, pos: Vec2<f32>, width: i32, height: i32) -> Actor {
         let actor = Actor(self.actors.len());
 
         let mut descent = false;
@@ -120,7 +120,7 @@ impl World {
         actor
     }
 
-    pub fn add_solid(&mut self, pos: Vec2, width: i32, height: i32) -> Solid {
+    pub fn add_solid(&mut self, pos: Vec2<f32>, width: i32, height: i32) -> Solid {
         let solid = Solid(self.solids.len());
 
         self.solids.push((
@@ -142,7 +142,7 @@ impl World {
         solid
     }
 
-    pub fn set_actor_position(&mut self, actor: Actor, pos: Vec2) {
+    pub fn set_actor_position(&mut self, actor: Actor, pos: Vec2<f32>) {
         let collider = &mut self.actors[actor.0].1;
 
         collider.x_remainder = 0.0;
@@ -168,7 +168,7 @@ impl World {
 
             while move_ != 0 {
                 let tile = self.collide_solids(
-                    collider.pos + vec2(0., sign as f32),
+                    collider.pos + Vec2::new(0., sign as f32),
                     collider.width,
                     collider.height,
                 );
@@ -216,7 +216,7 @@ impl World {
 
             while move_ != 0 {
                 let tile = self.collide_solids(
-                    collider.pos + vec2(sign as f32, 0.),
+                    collider.pos + Vec2::new(sign as f32, 0.),
                     collider.width,
                     collider.height,
                 );
@@ -248,13 +248,13 @@ impl World {
         let mut riding_actors = vec![];
         let mut pushing_actors = vec![];
 
-        let riding_rect = Rect::new(
+        let riding_rect = Rectangle::new(
             collider.pos.x,
             collider.pos.y - 1.0,
             collider.width as f32,
             1.0,
         );
-        let pushing_rect = Rect::new(
+        let pushing_rect = Rectangle::new(
             collider.pos.x + move_x as f32,
             collider.pos.y,
             collider.width as f32,
@@ -262,22 +262,22 @@ impl World {
         );
 
         for (actor, actor_collider) in &mut self.actors {
-            let rider_rect = Rect::new(
+            let rider_rect = Rectangle::new(
                 actor_collider.pos.x,
                 actor_collider.pos.y + actor_collider.height as f32 - 1.0,
                 actor_collider.width as f32,
                 1.0,
             );
 
-            if riding_rect.overlaps(&rider_rect) {
+            if riding_rect.intersects(&rider_rect) {
                 riding_actors.push(*actor);
-            } else if pushing_rect.overlaps(&actor_collider.rect())
+            } else if pushing_rect.intersects(&actor_collider.rect())
                 && actor_collider.squished == false
             {
                 pushing_actors.push(*actor);
             }
 
-            if pushing_rect.overlaps(&actor_collider.rect()) == false {
+            if pushing_rect.intersects(&actor_collider.rect()) == false {
                 actor_collider.squishers.remove(&solid);
                 if actor_collider.squishers.len() == 0 {
                     actor_collider.squished = false;
@@ -309,11 +309,11 @@ impl World {
         }
     }
 
-    pub fn solid_at(&self, pos: Vec2) -> bool {
+    pub fn solid_at(&self, pos: Vec2<f32>) -> bool {
         self.tag_at(pos, 1)
     }
 
-    pub fn tag_at(&self, pos: Vec2, tag: u8) -> bool {
+    pub fn tag_at(&self, pos: Vec2<f32>, tag: u8) -> bool {
         for StaticTiledLayer {
             tile_width,
             tile_height,
@@ -336,10 +336,10 @@ impl World {
 
         self.solids
             .iter()
-            .any(|solid| solid.1.collidable && solid.1.rect().contains(pos))
+            .any(|solid| solid.1.collidable && solid.1.rect().contains_point(pos))
     }
 
-    pub fn collide_solids(&self, pos: Vec2, width: i32, height: i32) -> Tile {
+    pub fn collide_solids(&self, pos: Vec2<f32>, width: i32, height: i32) -> Tile {
         let tile = self.collide_tag(1, pos, width, height);
         if tile != Tile::Empty {
             return tile;
@@ -349,7 +349,7 @@ impl World {
             .iter()
             .find(|solid| {
                 solid.1.collidable
-                    && solid.1.rect().overlaps(&Rect::new(
+                    && solid.1.rect().intersects(&Rectangle::new(
                         pos.x,
                         pos.y,
                         width as f32,
@@ -359,7 +359,7 @@ impl World {
             .map_or(Tile::Empty, |_| Tile::Collider)
     }
 
-    pub fn collide_tag(&self, tag: u8, pos: Vec2, width: i32, height: i32) -> Tile {
+    pub fn collide_tag(&self, tag: u8, pos: Vec2<f32>, width: i32, height: i32) -> Tile {
         for StaticTiledLayer {
             tile_width,
             tile_height,
@@ -369,7 +369,7 @@ impl World {
         } in &self.static_tiled_layers
         {
             let layer_height = static_colliders.len() / layer_width + 1;
-            let check = |pos: Vec2| {
+            let check = |pos: Vec2<f32>| {
                 let y = (pos.y / tile_width) as i32;
                 let x = (pos.x / tile_height) as i32;
                 let ix = y * (*layer_width as i32) + x;
@@ -388,9 +388,9 @@ impl World {
             };
 
             let tile = check(pos)
-                .or(check(pos + vec2(width as f32 - 1.0, 0.0)))
-                .or(check(pos + vec2(width as f32 - 1.0, height as f32 - 1.0)))
-                .or(check(pos + vec2(0.0, height as f32 - 1.0)));
+                .or(check(pos + Vec2::new(width as f32 - 1.0, 0.0)))
+                .or(check(pos + Vec2::new(width as f32 - 1.0, height as f32 - 1.0)))
+                .or(check(pos + Vec2::new(0.0, height as f32 - 1.0)));
 
             if tile != Tile::Empty {
                 return tile;
@@ -404,7 +404,7 @@ impl World {
                     x < pos.x + width as f32 - 1.
                 } {
                     let tile =
-                        check(vec2(x, pos.y)).or(check(vec2(x, pos.y + height as f32 - 1.0)));
+                        check(Vec2::new(x, pos.y)).or(check(Vec2::new(x, pos.y + height as f32 - 1.0)));
                     if tile != Tile::Empty {
                         return tile;
                     }
@@ -418,7 +418,7 @@ impl World {
                     y += tile_height;
                     y < pos.y + height as f32 - 1.
                 } {
-                    let tile = check(vec2(pos.x, y)).or(check(vec2(pos.x + width as f32 - 1., y)));
+                    let tile = check(Vec2::new(pos.x, y)).or(check(Vec2::new(pos.x + width as f32 - 1., y)));
                     if tile != Tile::Empty {
                         return tile;
                     }
@@ -432,15 +432,15 @@ impl World {
         self.actors[actor.0].1.squished
     }
 
-    pub fn actor_pos(&self, actor: Actor) -> Vec2 {
+    pub fn actor_pos(&self, actor: Actor) -> Vec2<f32> {
         self.actors[actor.0].1.pos
     }
 
-    pub fn solid_pos(&self, solid: Solid) -> Vec2 {
+    pub fn solid_pos(&self, solid: Solid) -> Vec2<f32> {
         self.solids[solid.0].1.pos
     }
 
-    pub fn collide_check(&self, collider: Actor, pos: Vec2) -> bool {
+    pub fn collide_check(&self, collider: Actor, pos: Vec2<f32>) -> bool {
         let collider = &self.actors[collider.0];
 
         let tile = self.collide_solids(pos, collider.1.width, collider.1.height);

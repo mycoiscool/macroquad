@@ -21,8 +21,8 @@ async fn main() {
     // (0., 0)     .... (SCR_W, 0.)
     // (0., SCR_H) .... (SCR_W, SCR_H)
     set_camera(&Camera2D {
-        zoom: vec2(1. / SCR_W * 2., 1. / SCR_H * 2.),
-        target: vec2(SCR_W / 2., SCR_H / 2.),
+        zoom: Vec2::new(1. / SCR_W * 2., 1. / SCR_H * 2.),
+        target: Vec2::new(SCR_W / 2., SCR_H / 2.),
         ..Default::default()
     });
 

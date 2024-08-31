@@ -1,15 +1,21 @@
 use glam::*;
 
+pub use tetra::graphics::Rectangle; 
+
+
+
+
+/*
 /// A 2D rectangle, defined by its top-left corner, width and height.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct Rect {
+ #[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Rectangle {
     pub x: f32,
     pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
-impl Rect {
+impl Rectangle {
     /// Creates a new rectangle from its top-left corner, width and height.
     ///
     /// # Arguments:
@@ -17,23 +23,23 @@ impl Rect {
     ///   * `y` - y-coordinate of the top-left corner.
     ///   * `w` - width of the `Rect`, going to the right.
     ///   * `h` - height of the `Rect`, going down.
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Rect {
-        Rect { x, y, w, h }
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Rectangle {
+        Rectangle { x, y, width: w, height: h }
     }
 
     /// Returns the top-left corner of the `Rect`.
     pub fn point(&self) -> Vec2 {
-        vec2(self.x, self.y)
+        Vec2::new(self.x, self.y)
     }
 
     /// Returns the size (width and height) of the `Rect`.
     pub fn size(&self) -> Vec2 {
-        vec2(self.w, self.h)
+        Vec2::new(self.width, self.height)
     }
 
     /// Returns the center position of the `Rect`.
     pub fn center(&self) -> Vec2 {
-        vec2(self.x + self.w * 0.5f32, self.y + self.h * 0.5f32)
+        Vec2::new(self.x + self.width * 0.5f32, self.y + self.height * 0.5f32)
     }
 
     /// Returns the left edge of the `Rect`
@@ -43,7 +49,7 @@ impl Rect {
 
     /// Returns the right edge of the `Rect`
     pub fn right(&self) -> f32 {
-        self.x + self.w
+        self.x + self.width
     }
 
     /// Returns the top edge of the `Rect`
@@ -53,7 +59,7 @@ impl Rect {
 
     /// Returns the bottom edge of the `Rect`
     pub fn bottom(&self) -> f32 {
-        self.y + self.h
+        self.y + self.height
     }
 
     /// Moves the `Rect`'s origin to (x, y)
@@ -65,8 +71,8 @@ impl Rect {
     /// Scales the `Rect` by a factor of (sx, sy),
     /// growing towards the bottom-left
     pub fn scale(&mut self, sx: f32, sy: f32) {
-        self.w *= sx;
-        self.h *= sy;
+        self.width *= sx;
+        self.height *= sy;
     }
 
     /// Checks whether the `Rect` contains a `Point`
@@ -78,7 +84,7 @@ impl Rect {
     }
 
     /// Checks whether the `Rect` overlaps another `Rect`
-    pub fn overlaps(&self, other: &Rect) -> bool {
+    pub fn overlaps(&self, other: &Rectangle) -> bool {
         self.left() <= other.right()
             && self.right() >= other.left()
             && self.top() <= other.bottom()
@@ -86,16 +92,16 @@ impl Rect {
     }
 
     /// Returns a new `Rect` that includes all points of these two `Rect`s.
-    pub fn combine_with(self, other: Rect) -> Rect {
+    pub fn combine_with(self, other: Rectangle) -> Rectangle {
         let x = f32::min(self.x, other.x);
         let y = f32::min(self.y, other.y);
         let w = f32::max(self.right(), other.right()) - x;
         let h = f32::max(self.bottom(), other.bottom()) - y;
-        Rect { x, y, w, h }
+        Rectangle { x, y, width: w, height: h }
     }
 
     /// Returns an intersection rect there is any intersection
-    pub fn intersect(&self, other: Rect) -> Option<Rect> {
+    pub fn intersect(&self, other: Rectangle) -> Option<Rectangle> {
         let left = self.x.max(other.x);
         let top = self.y.max(other.y);
         let right = self.right().min(other.right());
@@ -105,20 +111,20 @@ impl Rect {
             return None;
         }
 
-        Some(Rect {
+        Some(Rectangle {
             x: left,
             y: top,
-            w: right - left,
-            h: bottom - top,
+            width: right - left,
+            height: bottom - top,
         })
     }
 
     /// Translate rect origin be `offset` vector
-    pub fn offset(self, offset: Vec2) -> Rect {
-        Rect::new(self.x + offset.x, self.y + offset.y, self.w, self.h)
+    pub fn offset(self, offset: Vec2) -> Rectangle {
+        Rectangle::new(self.x + offset.x, self.y + offset.y, self.width, self.height)
     }
 }
-
+ */
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct RectOffset {
     pub left: f32,

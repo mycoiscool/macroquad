@@ -1,5 +1,5 @@
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{ElementState, Id, Layout, Ui, UiContent},
 };
 
@@ -37,8 +37,8 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
 
         let line_height = context.style.label_style.font_size;
 
-        let size = vec2(
-            context.window.cursor.area.w - context.style.margin * 2. - context.window.cursor.ident,
+        let size = Vec2::new(
+            context.window.cursor.area.width - context.style.margin * 2. - context.window.cursor.ident,
             (line_height as f32 + 4.).max(19.),
         );
 
@@ -58,7 +58,7 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
                 .label_size(self.label, None, font, font_size)
         };
 
-        let clickable_rect = Rect::new(pos.x, pos.y, active_area_w, size.y);
+        let clickable_rect = Rectangle::new(pos.x, pos.y, active_area_w, size.y);
 
         let (hovered, _) = context.register_click_intention(clickable_rect);
 
@@ -73,7 +73,7 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
         context.window.painter.draw_element_background(
             &context.style.combobox_style,
             pos,
-            vec2(combobox_area_w, size.y),
+            Vec2::new(combobox_area_w, size.y),
             ElementState {
                 focused: context.focused,
                 hovered,
@@ -85,7 +85,7 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
         context.window.painter.draw_element_content(
             &context.style.label_style,
             pos,
-            vec2(combobox_area_w, size.y),
+            Vec2::new(combobox_area_w, size.y),
             &UiContent::Label((&*self.variants[*data]).into()),
             ElementState {
                 focused: context.focused,
@@ -108,14 +108,14 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
         }
 
         let modal_size = Vec2::new(active_area_w, self.variants.len() as f32 * size.y);
-        let modal_rect = Rect::new(pos.x, pos.y + size.y, modal_size.x, modal_size.y);
+        let modal_rect = Rectangle::new(pos.x, pos.y + size.y, modal_size.x, modal_size.y);
 
         if *state == false && context.focused && hovered && context.input.click_down {
             *state = true;
         } else if *state
             && (context.input.escape
                 || context.input.enter
-                || (modal_rect.contains(context.input.mouse_position) == false
+                || (modal_rect.contains_point(context.input.mouse_position) == false
                     && context.input.click_down))
         {
             *state = false;
@@ -133,13 +133,13 @@ impl<'a, 'b, 'c> ComboBox<'a, 'b, 'c> {
                 .get_or_default::<bool>(hash!(self.id, "combobox_state"));
 
             for (i, variant) in self.variants.iter().enumerate() {
-                let rect = Rect::new(
+                let rect = Rectangle::new(
                     pos.x + 5.0,
                     pos.y + i as f32 * size.y + size.y,
                     active_area_w - 5.0,
                     size.y,
                 );
-                let hovered = rect.contains(context.input.mouse_position);
+                let hovered = rect.contains_point(context.input.mouse_position);
 
                 let color = context.style.combobox_style.color(ElementState {
                     focused: context.focused,

@@ -5,13 +5,13 @@ use std::collections::HashMap;
 use crate::{
     color::Color,
     get_context, get_quad_context,
-    math::{vec3, Rect},
+    math::{vec3, Rectangle},
     texture::{Image, TextureHandle},
     Error,
 };
 
 use crate::color::WHITE;
-use glam::vec2;
+use tetra::math::{Vec2, Vec3};
 
 use std::sync::{Arc, Mutex};
 pub(crate) mod atlas;
@@ -171,7 +171,7 @@ impl Font {
             let glyph = atlas.get(font_data.sprite).unwrap().rect;
             width += font_data.advance * font_scale_x;
             min_y = min_y.min(offset_y);
-            max_y = max_y.max(glyph.h * font_scale_y + offset_y);
+            max_y = max_y.max(glyph.height * font_scale_y + offset_y);
         }
 
         TextDimensions {
@@ -336,7 +336,7 @@ pub fn draw_text_ex(text: &str, x: f32, y: f32, params: TextParams) -> TextDimen
 
         let mut atlas = font.atlas.lock().unwrap();
         let glyph = atlas.get(char_data.sprite).unwrap().rect;
-        let glyph_scaled_h = glyph.h * font_scale_y;
+        let glyph_scaled_h = glyph.height * font_scale_y;
 
         min_offset_y = min_offset_y.min(offset_y);
         max_offset_y = max_offset_y.max(glyph_scaled_h + offset_y);
@@ -346,11 +346,11 @@ pub fn draw_text_ex(text: &str, x: f32, y: f32, params: TextParams) -> TextDimen
         let dest_x = (offset_x + total_width) * rot_cos + (glyph_scaled_h + offset_y) * rot_sin;
         let dest_y = (offset_x + total_width) * rot_sin + (-glyph_scaled_h - offset_y) * rot_cos;
 
-        let dest = Rect::new(
+        let dest = Rectangle::new(
             dest_x / dpi_scaling + x,
             dest_y / dpi_scaling + y,
-            glyph.w / dpi_scaling * font_scale_x,
-            glyph.h / dpi_scaling * font_scale_y,
+            glyph.width / dpi_scaling * font_scale_x,
+            glyph.height / dpi_scaling * font_scale_y,
         );
 
         total_width += char_data.advance * font_scale_x;
@@ -363,10 +363,10 @@ pub fn draw_text_ex(text: &str, x: f32, y: f32, params: TextParams) -> TextDimen
             dest.y,
             params.color,
             crate::texture::DrawTextureParams {
-                dest_size: Some(vec2(dest.w, dest.h)),
+                dest_size: Some(Vec2::new(dest.width, dest.height)),
                 source: Some(glyph),
                 rotation: rot,
-                pivot: Some(vec2(dest.x, dest.y)),
+                pivot: Some(Vec2::new(dest.x, dest.y)),
                 ..Default::default()
             },
         );
@@ -438,7 +438,7 @@ pub fn get_text_center(
     font_size: u16,
     font_scale: f32,
     rotation: f32,
-) -> crate::Vec2 {
+) -> crate::Vec2<f32> {
     let measure = measure_text(text, font, font_size, font_scale);
 
     let x_center = measure.width / 2.0 * rotation.cos() + measure.height / 2.0 * rotation.sin();
@@ -480,7 +480,7 @@ pub fn camera_font_scale(world_font_size: f32) -> (u16, f32, f32) {
     let cam_space = context
         .projection_matrix()
         .inverse()
-        .transform_vector3(vec3(2., 2., 0.));
+        .transform_vector3(glam::Vec3::new(2., 2., 0.));
     let (cam_w, cam_h) = (cam_space.x.abs(), cam_space.y.abs());
 
     let screen_font_size = world_font_size * scr_h / cam_h;

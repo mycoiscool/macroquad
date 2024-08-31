@@ -1,17 +1,17 @@
 #[cfg(target_os = "android")]
 use crate::get_quad_context;
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{ElementState, Id, InputCharacter, Key, KeyCode, Layout, Ui},
 };
 
 pub struct Editbox<'a> {
     id: Id,
-    size: Vec2,
+    size: Vec2<f32>,
     multiline: bool,
     select_all: bool,
     filter: Option<&'a dyn Fn(char) -> bool>,
-    pos: Option<Vec2>,
+    pos: Option<Vec2<f32>>,
     password: bool,
 }
 
@@ -22,7 +22,7 @@ use text_editor::EditboxState;
 const LEFT_MARGIN: f32 = 2.;
 
 impl<'a> Editbox<'a> {
-    pub fn new(id: Id, size: Vec2) -> Editbox<'a> {
+    pub fn new(id: Id, size: Vec2<f32>) -> Editbox<'a> {
         Editbox {
             id,
             size,
@@ -45,7 +45,7 @@ impl<'a> Editbox<'a> {
         }
     }
 
-    pub fn position(self, pos: Vec2) -> Self {
+    pub fn position(self, pos: Vec2<f32>) -> Self {
         Editbox {
             pos: Some(pos),
             ..self
@@ -259,9 +259,9 @@ impl<'a> Editbox<'a> {
             .pos
             .unwrap_or_else(|| context.window.cursor.fit(self.size, Layout::Vertical));
 
-        let rect = Rect::new(pos.x, pos.y, self.size.x, self.size.y);
+        let rect = Rectangle::new(pos.x, pos.y, self.size.x, self.size.y);
 
-        let hovered = rect.contains(context.input.mouse_position);
+        let hovered = rect.contains_point(context.input.mouse_position);
 
         if context.input.click_down() && hovered {
             #[cfg(target_os = "android")]
@@ -350,17 +350,17 @@ impl<'a> Editbox<'a> {
             self.id,
             parent_id,
             pos,
-            self.size + vec2(2., 2.),
+            self.size + Vec2::new(2., 2.),
             false,
             false,
         );
 
         let line_height = context.style.editbox_style.font_size as f32;
 
-        let size = vec2(150., line_height * text.split('\n').count() as f32);
+        let size = Vec2::new(150., line_height * text.split('\n').count() as f32);
 
         // TODO: this is very weird hardcoded text margin
-        let pos = context.window.cursor.fit(size, Layout::Free(vec2(2., 2.)));
+        let pos = context.window.cursor.fit(size, Layout::Free(Vec2::new(2., 2.)));
 
         context.window.painter.clip(parent_rect);
 
@@ -387,7 +387,7 @@ impl<'a> Editbox<'a> {
             if n == state.cursor as usize && input_focused {
                 // caret
                 context.window.painter.draw_rect(
-                    Rect::new(pos.x + x, pos.y + y + 2., 2., font_size as f32 - 5.),
+                    Rectangle::new(pos.x + x, pos.y + y + 2., 2., font_size as f32 - 5.),
                     text_color,
                     None,
                 );
@@ -399,10 +399,10 @@ impl<'a> Editbox<'a> {
             let mut advance = 1.5; // 1.5 - hack to make cursor on newlines visible
 
             if state.in_selected_range(n as u32) {
-                let pos = pos + vec2(x, y);
+                let pos = pos + Vec2::new(x, y);
 
                 context.window.painter.draw_rect(
-                    Rect::new(
+                    Rectangle::new(
                         pos.x,
                         pos.y,
                         context
@@ -427,7 +427,7 @@ impl<'a> Editbox<'a> {
                     .painter
                     .draw_character(
                         character,
-                        pos + vec2(x, y + font_size as f32 - baseline),
+                        pos + Vec2::new(x, y + font_size as f32 - baseline),
                         text_color,
                         &mut *font,
                         font_size,
@@ -484,7 +484,7 @@ impl<'a> Editbox<'a> {
 }
 
 impl Ui {
-    pub fn editbox(&mut self, id: Id, size: Vec2, text: &mut String) -> bool {
+    pub fn editbox(&mut self, id: Id, size: Vec2<f32>, text: &mut String) -> bool {
         Editbox::new(id, size).ui(self, text)
     }
 }

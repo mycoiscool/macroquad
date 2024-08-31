@@ -57,7 +57,7 @@
 //! }
 
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     time::get_frame_time,
 };
 
@@ -73,9 +73,9 @@ pub struct Animation {
 /// Specific animation frame
 pub struct AnimationFrame {
     /// Area of current frame in source image
-    pub source_rect: Rect,
+    pub source_rect: Rectangle,
     /// Size of frame
-    pub dest_size: Vec2,
+    pub dest_size: Vec2<f32>,
 }
 
 /// Main definition of all animations for specific image
@@ -157,13 +157,13 @@ impl AnimatedSprite {
         let animation = &self.animations[self.current_animation];
 
         AnimationFrame {
-            source_rect: Rect::new(
+            source_rect: Rectangle::new(
                 self.tile_width * self.frame as f32,
                 self.tile_height * animation.row as f32,
                 self.tile_width,
                 self.tile_height,
             ),
-            dest_size: vec2(self.tile_width, self.tile_height),
+            dest_size: Vec2::new(self.tile_width, self.tile_height),
         }
     }
 }

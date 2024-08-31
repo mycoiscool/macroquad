@@ -1,16 +1,18 @@
 //! 2D and 3D camera.
 
+use tetra::math::{Mat4, Vec2, Vec3};
+
 use crate::{
     get_context,
-    math::Rect,
+    math::{vec3, Rectangle},
     prelude::RenderPass,
     texture::RenderTarget,
     window::{screen_height, screen_width},
 };
-use glam::{vec2, vec3, Mat4, Vec2, Vec3};
+
 
 pub trait Camera {
-    fn matrix(&self) -> Mat4;
+    fn matrix(&self) -> Mat4<f32>;
     fn depth_enabled(&self) -> bool;
     fn render_pass(&self) -> Option<RenderPass>;
     fn viewport(&self) -> Option<(i32, i32, i32, i32)>;
@@ -21,11 +23,11 @@ pub struct Camera2D {
     /// Rotation in degrees.
     pub rotation: f32,
     /// Scaling, should be (1.0, 1.0) by default.
-    pub zoom: Vec2,
+    pub zoom: Vec2<f32>,
     /// Rotation and zoom origin.
-    pub target: Vec2,
+    pub target: Vec2<f32>,
     /// Displacement from target.
-    pub offset: Vec2,
+    pub offset: Vec2<f32>,
 
     /// If "render_target" is set - camera will render to texture.
     ///
@@ -44,13 +46,13 @@ pub struct Camera2D {
 
 impl Camera2D {
     /// Will make camera space equals given rect.
-    pub fn from_display_rect(rect: Rect) -> Camera2D {
-        let target = vec2(rect.x + rect.w / 2., rect.y + rect.h / 2.);
+    pub fn from_display_rect(rect: Rectangle) -> Camera2D {
+        let target = Vec2::new(rect.x + rect.width / 2., rect.y + rect.height / 2.);
 
         Camera2D {
             target,
-            zoom: vec2(1. / rect.w * 2., -1. / rect.h * 2.),
-            offset: vec2(0., 0.),
+            zoom: Vec2::new(1. / rect.width * 2., -1. / rect.height * 2.),
+            offset: Vec2::new(0., 0.),
             rotation: 0.,
 
             render_target: None,
@@ -62,9 +64,9 @@ impl Camera2D {
 impl Default for Camera2D {
     fn default() -> Camera2D {
         Camera2D {
-            zoom: vec2(1., 1.),
-            offset: vec2(0., 0.),
-            target: vec2(0., 0.),
+            zoom: Vec2::new(1., 1.),
+            offset: Vec2::new(0., 0.),
+            target: Vec2::new(0., 0.),
             rotation: 0.,
 
             render_target: None,
@@ -74,7 +76,7 @@ impl Default for Camera2D {
 }
 
 impl Camera for Camera2D {
-    fn matrix(&self) -> Mat4 {
+    fn matrix(&self) -> Mat4<f32> {
         // gleaned from https://github.com/raysan5/raylib/blob/master/src/core.c#L1528
 
         // The camera in world-space is set by
@@ -91,6 +93,19 @@ impl Camera for Camera2D {
         //   1. Move to offset
         //   2. Rotate and Scale
         //   3. Move by -target
+
+
+
+        let mut mat = Mat4::translation_2d(-self.target); 
+        mat.rotate_z(self.rotation.to_radians()); 
+        mat.scale_3d(Vec3::new(self.zoom.x, self.zoom.y, 1.0));
+        mat.translate_2d(Vec3::new(self.offset.x, self.offset.y, 0.0));
+
+    /*     let mat_origion = Mat4::translation_2d(-self.target); 
+        let mat_rotation = Mat4::rotate_z(self.rotation.to_radians()); 
+
+
+
         let mat_origin = Mat4::from_translation(vec3(-self.target.x, -self.target.y, 0.0));
         let mat_rotation = Mat4::from_axis_angle(vec3(0.0, 0.0, 1.0), self.rotation.to_radians());
         let invert_y = if self.render_target.is_some() {
@@ -101,7 +116,9 @@ impl Camera for Camera2D {
         let mat_scale = Mat4::from_scale(vec3(self.zoom.x, self.zoom.y * invert_y, 1.0));
         let mat_translation = Mat4::from_translation(vec3(self.offset.x, self.offset.y, 0.0));
 
-        mat_translation * ((mat_scale * mat_rotation) * mat_origin)
+        mat_translation * ((mat_scale * mat_rotation) * mat_origin) */
+
+        mat
     }
 
     fn depth_enabled(&self) -> bool {
@@ -121,28 +138,50 @@ impl Camera2D {
     /// Returns the screen space position for a 2d camera world space position.
     ///
     /// Screen position in window space - from (0, 0) to (screen_width, screen_height()).
-    pub fn world_to_screen(&self, point: Vec2) -> Vec2 {
-        let mat = self.matrix();
+    pub fn world_to_screen(&self, point: Vec2<f32>) -> Vec2<f32> {
+        let width = screen_width();
+        let height = screen_height();
+
+       /*  let mat = self.matrix();
         let transform = mat.transform_point3(vec3(point.x, point.y, 0.));
 
-        vec2(
+        Vec2::new(
             (transform.x / 2. + 0.5) * screen_width(),
             (0.5 - transform.y / 2.) * screen_height(),
-        )
+        ) */
+
+       let mut proj = Vec2::new(
+            (point.x - width / 2.0) / self.zoom.x,
+            (point.y -height / 2.0) / self.zoom.y,
+        );
+
+        proj.rotate_z(-self.rotation);
+        proj += point;
+
+        proj
     }
 
     /// Returns the world space position for a 2d camera screen space position.
     ///
     /// Point is a screen space position, often mouse x and y.
-    pub fn screen_to_world(&self, point: Vec2) -> Vec2 {
-        let point = vec2(
+    pub fn screen_to_world(&self, point: Vec2<f32>) -> Vec2<f32> {
+    /*     let point = Vec2::new(
             point.x / screen_width() * 2. - 1.,
             1. - point.y / screen_height() * 2.,
         );
         let inv_mat = self.matrix().inverse();
         let transform = inv_mat.transform_point3(vec3(point.x, point.y, 0.));
 
-        vec2(transform.x, transform.y)
+        Vec2::new(transform.x, transform.y) */
+
+
+        let mut unproj = point - self.target;
+        unproj.rotate_z(self.rotation);
+
+        unproj.x = unproj.x * self.zoom.x + screen_width() / 2.0;
+        unproj.y = unproj.y * self.zoom.y + screen_height() / 2.0;
+
+        unproj
     }
 }
 
@@ -155,11 +194,11 @@ pub enum Projection {
 #[derive(Debug)]
 pub struct Camera3D {
     /// Camera position.
-    pub position: Vec3,
+    pub position: Vec3<f32>,
     /// Camera target it looks-at.
-    pub target: Vec3,
+    pub target: Vec3<f32>,
     /// Camera up vector (rotation over its axis).
-    pub up: Vec3,
+    pub up: Vec3<f32>,
     /// Camera field-of-view aperture in Y (radians)
     /// in perspective, used as near plane width in orthographic.
     pub fovy: f32,
@@ -206,8 +245,8 @@ impl Camera3D {
 }
 
 impl Camera for Camera3D {
-    fn matrix(&self) -> Mat4 {
-        let aspect = self.aspect.unwrap_or(screen_width() / screen_height());
+    fn matrix(&self) -> Mat4<f32> {
+        /* let aspect = self.aspect.unwrap_or(screen_width() / screen_height());
 
         match self.projection {
             Projection::Perspective => {
@@ -221,7 +260,9 @@ impl Camera for Camera3D {
                 Mat4::orthographic_rh_gl(-right, right, -top, top, Self::Z_NEAR, Self::Z_FAR)
                     * Mat4::look_at_rh(self.position, self.target, self.up)
             }
-        }
+        } */
+
+       self.matrix()
     }
 
     fn depth_enabled(&self) -> bool {
@@ -268,7 +309,7 @@ pub fn set_default_camera() {
 pub(crate) struct CameraState {
     render_pass: Option<miniquad::RenderPass>,
     depth_test: bool,
-    matrix: Option<Mat4>,
+    matrix: Option<Mat4<f32>>,
 }
 
 pub fn push_camera_state() {

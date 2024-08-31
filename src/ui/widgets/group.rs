@@ -1,21 +1,21 @@
 use crate::{
-    math::{Rect, Vec2},
+    math::{Rectangle, Vec2},
     ui::{Drag, DragState, ElementState, Id, Layout, Ui},
 };
 
 #[derive(Debug, Clone)]
 pub struct Group {
     id: Id,
-    position: Option<Vec2>,
+    position: Option<Vec2<f32>>,
     layout: Layout,
-    size: Vec2,
+    size: Vec2<f32>,
     draggable: bool,
     highlight: bool,
     hoverable: bool,
 }
 
 impl Group {
-    pub fn new(id: Id, size: Vec2) -> Group {
+    pub fn new(id: Id, size: Vec2<f32>) -> Group {
         Group {
             id,
             size,
@@ -27,7 +27,7 @@ impl Group {
         }
     }
 
-    pub fn position(self, position: Vec2) -> Group {
+    pub fn position(self, position: Vec2<f32>) -> Group {
         Group {
             position: Some(position),
             ..self
@@ -69,13 +69,13 @@ impl Group {
             .window
             .cursor
             .fit(self.size, self.position.map_or(self.layout, Layout::Free));
-        let rect = Rect::new(pos.x, pos.y, self.size.x, self.size.y);
+        let rect = Rectangle::new(pos.x, pos.y, self.size.x, self.size.y);
         let parent_id = Some(parent.window.id);
 
         let mut context = ui.begin_window(self.id, parent_id, pos, self.size, false, true);
 
         let hovered =
-            (self.hoverable || self.draggable) && rect.contains(context.input.mouse_position);
+            (self.hoverable || self.draggable) && rect.contains_point(context.input.mouse_position);
 
         if self.draggable && context.dragging.is_none() && hovered && context.input.click_down {
             *context.dragging = Some((self.id, DragState::Clicked(context.input.mouse_position)));
@@ -146,8 +146,8 @@ impl Group {
 pub struct GroupToken {
     draggable: bool,
     drag: Drag,
-    pos: Vec2,
-    size: Vec2,
+    pos: Vec2<f32>,
+    size: Vec2<f32>,
 }
 
 impl GroupToken {
@@ -160,8 +160,8 @@ impl GroupToken {
             if
             //parent.dragging.is_none()
             context.input.is_mouse_down
-                && Rect::new(self.pos.x, self.pos.y, self.size.x, self.size.y)
-                    .contains(context.input.mouse_position)
+                && Rectangle::new(self.pos.x, self.pos.y, self.size.x, self.size.y)
+                    .contains_point(context.input.mouse_position)
             {
                 // *context.dragging = Some((
                 //     id,
@@ -177,7 +177,7 @@ impl GroupToken {
 }
 
 impl Ui {
-    pub fn group<F: FnOnce(&mut Ui)>(&mut self, id: Id, size: Vec2, f: F) -> Drag {
+    pub fn group<F: FnOnce(&mut Ui)>(&mut self, id: Id, size: Vec2<f32>, f: F) -> Drag {
         Group::new(id, size).ui(self, f)
     }
 }

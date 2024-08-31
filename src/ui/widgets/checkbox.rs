@@ -1,5 +1,5 @@
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{ElementState, Id, Layout, Ui, UiContent},
 };
 
@@ -7,8 +7,8 @@ pub struct Checkbox<'a> {
     id: Id,
     label: &'a str,
     ratio: f32,
-    pos: Option<Vec2>,
-    size: Option<Vec2>,
+    pos: Option<Vec2<f32>>,
+    size: Option<Vec2<f32>>,
 }
 
 impl<'a> Checkbox<'a> {
@@ -36,14 +36,14 @@ impl<'a> Checkbox<'a> {
         }
     }
 
-    pub fn pos(self, pos: Vec2) -> Self {
+    pub fn pos(self, pos: Vec2<f32>) -> Self {
         Self {
             pos: Some(pos),
             ..self
         }
     }
 
-    pub fn size(self, size: Vec2) -> Self {
+    pub fn size(self, size: Vec2<f32>) -> Self {
         Self {
             size: Some(size),
             ..self
@@ -57,8 +57,8 @@ impl<'a> Checkbox<'a> {
             &context.style.label_style,
             &UiContent::Label(self.label.into()),
         );
-        let size = self.size.unwrap_or(vec2(
-            context.window.cursor.area.w - context.style.margin * 2. - context.window.cursor.ident,
+        let size = self.size.unwrap_or(Vec2::new(
+            context.window.cursor.area.width - context.style.margin * 2. - context.window.cursor.ident,
             label_size.y.max(22.),
         ));
 
@@ -80,13 +80,13 @@ impl<'a> Checkbox<'a> {
             pos.y + context.style.margin,
         );
 
-        let hovered = Rect::new(
+        let hovered = Rectangle::new(
             checkbox_pos.x,
             checkbox_pos.y,
             checkbox_area.x,
             checkbox_area.y,
         )
-        .contains(context.input.mouse_position);
+        .contains_point(context.input.mouse_position);
 
         let background = context
             .style
@@ -113,14 +113,14 @@ impl<'a> Checkbox<'a> {
                 .unwrap_or_default();
 
             context.window.painter.draw_sprite(
-                Rect::new(checkbox_pos.x, checkbox_pos.y, 19., 19.),
+                Rectangle::new(checkbox_pos.x, checkbox_pos.y, 19., 19.),
                 background,
                 color,
                 Some(background_margin),
             );
         } else {
             context.window.painter.draw_rect(
-                Rect::new(
+                Rectangle::new(
                     checkbox_pos.x,
                     checkbox_pos.y,
                     checkbox_area.x,

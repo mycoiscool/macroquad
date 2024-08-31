@@ -64,7 +64,7 @@ pub fn camera_ui() -> impl DerefMut<Target = Ui> {
 }
 
 use crate::{
-    math::{Rect, RectOffset, Vec2},
+    math::{Rectangle, RectOffset, Vec2},
     text::{
         atlas::{Atlas, SpriteKey},
         Font,
@@ -121,8 +121,8 @@ pub(crate) struct Window {
     // the way to find out which windows should be rendered after end of the frame and during next frame, before begin_window of the next frame will be called on each window
     pub was_active: bool,
     pub title_height: f32,
-    pub position: Vec2,
-    pub size: Vec2,
+    pub position: Vec2<f32>,
+    pub size: Vec2<f32>,
     pub vertical_scroll_bar_width: f32,
     pub movable: bool,
     pub painter: Painter,
@@ -139,8 +139,8 @@ impl Window {
     pub fn new(
         id: Id,
         parent: Option<Id>,
-        position: Vec2,
-        size: Vec2,
+        position: Vec2<f32>,
+        size: Vec2<f32>,
         title_height: f32,
         window_margin: RectOffset,
         margin: f32,
@@ -159,7 +159,7 @@ impl Window {
             active: false,
             painter: Painter::new(atlas),
             cursor: Cursor::new(
-                Rect::new(
+                Rectangle::new(
                     position.x + window_margin.left,
                     position.y + title_height + window_margin.top,
                     size.x - window_margin.left - window_margin.right,
@@ -176,10 +176,10 @@ impl Window {
         }
     }
 
-    pub fn resize(&mut self, size: Vec2) {
+    pub fn resize(&mut self, size: Vec2<f32>) {
         self.size = size;
         self.cursor = Cursor::new(
-            Rect::new(
+            Rectangle::new(
                 self.position.x + self.window_margin.left,
                 self.position.y + self.title_height + self.window_margin.top,
                 self.size.x - self.window_margin.left - self.window_margin.right,
@@ -196,12 +196,12 @@ impl Window {
         self.parent.is_none()
     }
 
-    pub fn full_rect(&self) -> Rect {
-        Rect::new(self.position.x, self.position.y, self.size.x, self.size.y)
+    pub fn full_rect(&self) -> Rectangle {
+        Rectangle::new(self.position.x, self.position.y, self.size.x, self.size.y)
     }
 
-    pub fn content_rect(&self) -> Rect {
-        Rect::new(
+    pub fn content_rect(&self) -> Rectangle {
+        Rectangle::new(
             self.position.x,
             self.position.y + self.title_height,
             self.size.x - self.vertical_scroll_bar_width,
@@ -209,14 +209,14 @@ impl Window {
         )
     }
 
-    pub fn set_position(&mut self, position: Vec2) {
+    pub fn set_position(&mut self, position: Vec2<f32>) {
         self.position = position;
         self.cursor.area.x = position.x + self.window_margin.left;
         self.cursor.area.y = position.y + self.title_height + self.window_margin.top;
     }
 
-    pub fn title_rect(&self) -> Rect {
-        Rect::new(
+    pub fn title_rect(&self) -> Rectangle {
+        Rectangle::new(
             self.position.x,
             self.position.y,
             self.size.x,
@@ -231,15 +231,15 @@ impl Window {
 
 #[derive(Copy, Clone, Debug)]
 pub enum DragState {
-    Clicked(Vec2),
-    Dragging(Vec2),
+    Clicked(Vec2<f32>),
+    Dragging(Vec2<f32>),
 }
 
 #[derive(Copy, Clone, Debug)]
 pub enum Drag {
     No,
-    Dragging(Vec2, Option<Id>),
-    Dropped(Vec2, Option<Id>),
+    Dragging(Vec2<f32>, Option<Id>),
+    Dropped(Vec2<f32>, Option<Id>),
 }
 
 struct StyleStack {
@@ -339,7 +339,7 @@ pub struct Ui {
     pub frame: u64,
     pub(crate) time: f32,
 
-    moving: Option<(Id, Vec2)>,
+    moving: Option<(Id, Vec2<f32>)>,
     windows: HashMap<Id, Window>,
     // special window that is always rendered on top of anything
     // TODO: maybe make modal windows stack instead
@@ -425,8 +425,8 @@ impl<'a> WindowContext<'a> {
     pub(crate) fn scroll_area(&mut self) {
         let inner_rect = self.window.cursor.scroll.inner_rect_previous_frame;
         let rect = self.window.content_rect();
-        let rect = Rect {
-            w: rect.w + self.window.vertical_scroll_bar_width,
+        let rect = Rectangle {
+            width: rect.width + self.window.vertical_scroll_bar_width,
             ..rect
         };
 
@@ -435,15 +435,15 @@ impl<'a> WindowContext<'a> {
             -self.window.cursor.scroll.rect.y,
         );
 
-        if inner_rect.h > rect.h {
+        if inner_rect.height > rect.height {
             self.window.vertical_scroll_bar_width = self.style.scroll_width;
             self.draw_vertical_scroll_bar(
                 rect,
-                Rect::new(
-                    rect.x + rect.w - self.style.scroll_width,
+                Rectangle::new(
+                    rect.x + rect.width - self.style.scroll_width,
                     rect.y,
                     self.style.scroll_width,
-                    rect.h,
+                    rect.height,
                 ),
             );
         } else {
@@ -457,15 +457,15 @@ impl<'a> WindowContext<'a> {
         self.window.want_close = true;
     }
 
-    fn draw_vertical_scroll_bar(&mut self, area: Rect, rect: Rect) {
+    fn draw_vertical_scroll_bar(&mut self, area: Rectangle, rect: Rectangle) {
         let scroll = &mut self.window.cursor.scroll;
         let inner_rect = scroll.inner_rect_previous_frame;
-        let size = scroll.rect.h / inner_rect.h * rect.h;
-        let pos = (scroll.rect.y - inner_rect.y) / inner_rect.h * rect.h;
+        let size = scroll.rect.height / inner_rect.height * rect.height;
+        let pos = (scroll.rect.y - inner_rect.y) / inner_rect.height * rect.height;
 
         self.window.painter.draw_line(
             Vec2::new(rect.x, rect.y),
-            Vec2::new(rect.x, rect.y + rect.h),
+            Vec2::new(rect.x, rect.y + rect.height),
             self.style.scrollbar_style.color(ElementState {
                 focused: self.focused,
                 ..Default::default()
@@ -474,9 +474,9 @@ impl<'a> WindowContext<'a> {
 
         let mut clicked = false;
         let mut hovered = false;
-        let bar = Rect::new(rect.x + 1., rect.y + pos, rect.w - 1., size);
-        let k = inner_rect.h / scroll.rect.h;
-        if bar.contains(self.input.mouse_position) {
+        let bar = Rectangle::new(rect.x + 1., rect.y + pos, rect.width - 1., size);
+        let k = inner_rect.height / scroll.rect.height;
+        if bar.contains_point(self.input.mouse_position) {
             hovered = true;
         }
         if hovered && self.input.is_mouse_down() {
@@ -494,7 +494,7 @@ impl<'a> WindowContext<'a> {
         }
 
         if self.focused
-            && area.contains(self.input.mouse_position)
+            && area.contains_point(self.input.mouse_position)
             && self.input.mouse_wheel.y != 0.
         {
             scroll.scroll_to(
@@ -514,9 +514,9 @@ impl<'a> WindowContext<'a> {
         );
     }
 
-    pub fn register_click_intention(&mut self, rect: Rect) -> (bool, bool) {
+    pub fn register_click_intention(&mut self, rect: Rectangle) -> (bool, bool) {
         *self.last_item_hovered =
-            self.input.window_active && rect.contains(self.input.mouse_position);
+            self.input.window_active && rect.contains_point(self.input.mouse_position);
         *self.last_item_clicked = *self.last_item_hovered && self.input.click_down();
 
         (*self.last_item_hovered, *self.last_item_clicked)
@@ -537,13 +537,13 @@ impl InputHandler for Ui {
         self.input.mouse_position = position;
 
         if let Some(ref window) = self.modal {
-            let rect = Rect::new(
+            let rect = Rectangle::new(
                 window.position.x,
                 window.position.y,
                 window.size.x,
                 window.size.y,
             );
-            if window.was_active && rect.contains(position) {
+            if window.was_active && rect.contains_point(position) {
                 return;
             }
         }
@@ -555,14 +555,14 @@ impl InputHandler for Ui {
                 continue;
             }
 
-            if window.top_level() && window.title_rect().contains(position) && window.movable {
+            if window.top_level() && window.title_rect().contains_point(position) && window.movable {
                 self.moving = Some((
                     window.id,
                     position - Vec2::new(window.position.x, window.position.y),
                 ));
             }
 
-            if window.top_level() && window.full_rect().contains(position) {
+            if window.top_level() && window.full_rect().contains_point(position) {
                 let window = self.windows_focus_order.remove(n);
                 self.windows_focus_order.insert(0, window);
                 return;
@@ -589,7 +589,7 @@ impl InputHandler for Ui {
         for window in self.windows_focus_order.iter() {
             let window = &self.windows[window];
 
-            if window.top_level() && window.was_active && window.full_rect().contains(position) {
+            if window.top_level() && window.was_active && window.full_rect().contains_point(position) {
                 self.hovered_window = window.id;
                 break;
             }
@@ -597,7 +597,7 @@ impl InputHandler for Ui {
 
         match &self.modal {
             Some(modal) if modal.was_active || modal.active => {
-                if modal.full_rect().contains(position) {
+                if modal.full_rect().contains_point(position) {
                     self.hovered_window = modal.id;
                 }
             }
@@ -730,8 +730,8 @@ impl Ui {
         &mut self,
         id: Id,
         parent: Option<Id>,
-        position: Vec2,
-        size: Vec2,
+        position: Vec2<f32>,
+        size: Vec2<f32>,
         titlebar: bool,
         movable: bool,
     ) -> WindowContext {
@@ -824,7 +824,7 @@ impl Ui {
         }
     }
 
-    pub(crate) fn begin_modal(&mut self, id: Id, position: Vec2, size: Vec2) -> WindowContext {
+    pub(crate) fn begin_modal(&mut self, id: Id, position: Vec2<f32>, size: Vec2<f32>) -> WindowContext {
         self.input.window_active = true;
         self.in_modal = true;
 
@@ -849,7 +849,7 @@ impl Ui {
         window.size = size;
         window.want_close = false;
         window.active = true;
-        window.painter.clipping_zone = Some(Rect::new(position.x, position.y, size.x, size.y));
+        window.painter.clipping_zone = Some(Rectangle::new(position.x, position.y, size.x, size.y));
         window.set_position(position);
 
         WindowContext {
@@ -947,14 +947,14 @@ impl Ui {
     pub fn scroll_here_ratio(&mut self, ratio: f32) {
         let context = self.get_active_window_context();
         let cursor = &mut context.window.cursor;
-        cursor.scroll.scroll_to(cursor.y - cursor.area.h * ratio);
+        cursor.scroll.scroll_to(cursor.y - cursor.area.height * ratio);
     }
 
     /// How far the active gui window has been scrolled down on the y axis.
     ///
     /// Note that for these purposes, a Group widget is still considered a Window
     /// because it can have its own scrollbar.
-    pub fn scroll(&mut self) -> Vec2 {
+    pub fn scroll(&mut self) -> Vec2<f32> {
         self.get_active_window_context().window.cursor.scroll.scroll
     }
 
@@ -962,11 +962,11 @@ impl Ui {
     ///
     /// Note that for these purposes, a Group widget is still considered a Window
     /// because it can have its own scrollbar.
-    pub fn scroll_max(&mut self) -> Vec2 {
+    pub fn scroll_max(&mut self) -> Vec2<f32> {
         let cursor = &self.get_active_window_context().window.cursor;
         Vec2::new(
-            cursor.scroll.inner_rect.w - cursor.area.w,
-            cursor.scroll.inner_rect.h - cursor.area.h,
+            cursor.scroll.inner_rect.width - cursor.area.width,
+            cursor.scroll.inner_rect.height - cursor.area.height,
         )
     }
 
@@ -974,19 +974,19 @@ impl Ui {
         self.input.cursor_grabbed
     }
 
-    pub fn is_mouse_over(&self, mouse_position: Vec2) -> bool {
+    pub fn is_mouse_over(&self, mouse_position: Vec2<f32>) -> bool {
         for window in self.windows_focus_order.iter() {
             let window = &self.windows[window];
             if window.was_active == false {
                 continue;
             }
-            if window.full_rect().contains(mouse_position) {
+            if window.full_rect().contains_point(mouse_position) {
                 return true;
             }
         }
         for window in &self.modal {
             if window.was_active {
-                if window.full_rect().contains(mouse_position) {
+                if window.full_rect().contains_point(mouse_position) {
                     return true;
                 }
             }
@@ -1052,7 +1052,7 @@ impl Ui {
     }
 
     pub fn new_frame(&mut self, delta: f32) {
-        self.root_window.resize(crate::math::vec2(
+        self.root_window.resize(Vec2::new(
             crate::window::screen_width(),
             crate::window::screen_height(),
         ));
@@ -1118,14 +1118,14 @@ impl Ui {
         }
     }
 
-    fn render_window(&self, window: &Window, offset: Vec2, draw_list: &mut Vec<DrawList>) {
+    fn render_window(&self, window: &Window, offset: Vec2<f32>, draw_list: &mut Vec<DrawList>) {
         for cmd in &window.painter.commands {
             crate::ui::render::render_command(draw_list, cmd.offset(offset));
         }
 
         for child in &window.childs {
             let child_window = &self.windows[child];
-            if window.content_rect().overlaps(&child_window.full_rect()) {
+            if window.content_rect().intersects(&child_window.full_rect()) {
                 self.render_window(child_window, offset, draw_list);
             }
         }
@@ -1146,7 +1146,7 @@ impl Ui {
         self.input_focus = None;
     }
 
-    pub fn move_window(&mut self, id: Id, position: Vec2) {
+    pub fn move_window(&mut self, id: Id, position: Vec2<f32>) {
         if let Some(window) = self.windows.get_mut(&id) {
             window.set_position(position);
         }
@@ -1335,7 +1335,7 @@ pub(crate) mod ui_context {
                 quad_gl.scissor(
                     draw_command
                         .clipping_zone
-                        .map(|rect| (rect.x as i32, rect.y as i32, rect.w as i32, rect.h as i32)),
+                        .map(|rect| (rect.x as i32, rect.y as i32, rect.width as i32, rect.height as i32)),
                 );
                 quad_gl.draw_mode(DrawMode::Triangles);
                 quad_gl.geometry(&draw_command.vertices[..], &draw_command.indices);

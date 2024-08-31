@@ -1,5 +1,5 @@
 use crate::{
-    math::{vec2, Rect, Vec2},
+    math::{vec2, Rectangle, Vec2},
     ui::{widgets::Editbox, ElementState, Id, Layout, Ui, UiContent},
 };
 
@@ -40,7 +40,7 @@ pub struct Drag<'a> {
     id: Id,
     label: &'a str,
     range: Option<(f64, f64)>,
-    size: Option<Vec2>,
+    size: Option<Vec2<f32>>,
     step: f32,
 }
 
@@ -89,8 +89,8 @@ impl<'a> Drag<'a> {
             &context.style.label_style,
             &UiContent::Label(self.label.into()),
         );
-        let size = vec2(
-            context.window.cursor.area.w - context.style.margin * 2. - context.window.cursor.ident,
+        let size = Vec2::new(
+            context.window.cursor.area.width - context.style.margin * 2. - context.window.cursor.ident,
             label_size.y.max(22.),
         );
 
@@ -103,8 +103,8 @@ impl<'a> Drag<'a> {
             },
             size.y,
         );
-        let hovered = Rect::new(pos.x, pos.y, editbox_area.x, editbox_area.y)
-            .contains(context.input.mouse_position);
+        let hovered = Rectangle::new(pos.x, pos.y, editbox_area.x, editbox_area.y)
+            .contains_point(context.input.mouse_position);
 
         // state transition between editbox and dragbox
         if s.in_editbox == false {

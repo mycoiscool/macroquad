@@ -150,7 +150,7 @@ pub struct DrawRectangleParams {
 impl Default for DrawRectangleParams {
     fn default() -> Self {
         Self {
-            offset: vec2(0.0, 0.0),
+            offset: Vec2::new(0.0, 0.0),
             rotation: 0.0,
             color: Color::from_rgba(255, 255, 255, 255),
         }
@@ -317,7 +317,7 @@ pub fn draw_ellipse_lines(
         let rotated_x = px * cr - py * sr;
         let rotated_y = py * cr + px * sr;
 
-        let p0 = vec2(x + rotated_x, y + rotated_y);
+        let p0 = Vec2::new(x + rotated_x, y + rotated_y);
 
         let rx = ((i + 1) as f32 / sides as f32 * std::f32::consts::PI * 2.).cos();
         let ry = ((i + 1) as f32 / sides as f32 * std::f32::consts::PI * 2.).sin();
@@ -326,7 +326,7 @@ pub fn draw_ellipse_lines(
         let rotated_x = px * cr - py * sr;
         let rotated_y = py * cr + px * sr;
 
-        let p1 = vec2(x + rotated_x, y + rotated_y);
+        let p1 = Vec2::new(x + rotated_x, y + rotated_y);
 
         draw_line(p0.x, p0.y, p1.x, p1.y, thickness, color);
     }

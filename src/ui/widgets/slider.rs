@@ -1,5 +1,7 @@
+use tetra::math::Vec2;
+
 use crate::{
-    math::{vec2, Rect},
+    math::{vec2, Rectangle},
     ui::{widgets::Editbox, ElementState, Id, Layout, Ui},
 };
 
@@ -31,8 +33,8 @@ impl<'a> Slider<'a> {
     pub fn ui(self, ui: &mut Ui, data: &mut f32) {
         let context = ui.get_active_window_context();
 
-        let size = vec2(
-            context.window.cursor.area.w - context.style.margin * 3. - context.window.cursor.ident,
+        let size = Vec2::new(
+            context.window.cursor.area.width - context.style.margin * 3. - context.window.cursor.ident,
             19.,
         );
         let pos = context.window.cursor.fit(size, Layout::Vertical);
@@ -55,7 +57,7 @@ impl<'a> Slider<'a> {
             let _ = write!(&mut temp_string, "{:.2}", *data);
         }
 
-        Editbox::new(editbox_id, vec2(50., size.y))
+        Editbox::new(editbox_id, Vec2::new(50., size.y))
             .position(pos)
             .multiline(false)
             .filter(&|character| character.is_digit(10) || character == '.' || character == '-')
@@ -85,8 +87,8 @@ impl<'a> Slider<'a> {
             * slider_width
             + slider_start_x;
 
-        let bar_rect = Rect::new(data_pos - 4., pos.y, 8., 20.);
-        let hovered = bar_rect.contains(context.input.mouse_position);
+        let bar_rect = Rectangle::new(data_pos - 4., pos.y, 8., 20.);
+        let hovered = bar_rect.contains_point(context.input.mouse_position);
 
         if hovered && context.input.is_mouse_down() {
             *dragging = 1;
@@ -117,8 +119,8 @@ impl<'a> Slider<'a> {
 
         // static horizontal line in the middle of the slider
         context.window.painter.draw_line(
-            vec2(pos.x + editbox_width + margin, pos.y + size.y / 2.),
-            vec2(
+            Vec2::new(pos.x + editbox_width + margin, pos.y + size.y / 2.),
+            Vec2::new(
                 pos.x + editbox_width + slider_width + margin,
                 pos.y + size.y / 2.,
             ),
@@ -145,7 +147,7 @@ impl<'a> Slider<'a> {
 
         context.window.painter.draw_element_label(
             &context.style.label_style,
-            vec2(
+            Vec2::new(
                 pos.x + editbox_width + slider_width + margin * 2.,
                 pos.y + 2.,
             ),

@@ -2,7 +2,7 @@
 
 use crate::{
     color::Color,
-    math::{vec2, vec3, Rect, RectOffset, Vec2},
+    math::{vec3, RectOffset, Rectangle, Vec2},
     texture::Texture2D,
     ui::render::DrawCommand,
 };
@@ -16,7 +16,7 @@ const MAX_INDICES: usize = 4000;
 pub struct DrawList {
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u16>,
-    pub clipping_zone: Option<Rect>,
+    pub clipping_zone: Option<Rectangle>,
     pub texture: Option<Texture2D>,
 }
 
@@ -36,36 +36,36 @@ impl DrawList {
         self.clipping_zone = None;
     }
 
-    pub fn draw_rectangle_lines(&mut self, rect: Rect, source: Rect, color: Color) {
-        let Rect { x, y, w, h } = rect;
+    pub fn draw_rectangle_lines(&mut self, rect: Rectangle, source: Rectangle, color: Color) {
+        let Rectangle { x, y, width: w, height: h } = rect;
 
-        self.draw_rectangle(Rect { x, y, w, h: 1. }, source, color);
+        self.draw_rectangle(Rectangle { x, y, width: w, height: 1. }, source, color);
         self.draw_rectangle(
-            Rect {
+            Rectangle {
                 x: x + w - 1.,
                 y: y + 1.,
-                w: 1.,
-                h: h - 2.,
+                width: 1.,
+                height: h - 2.,
             },
             source,
             color,
         );
         self.draw_rectangle(
-            Rect {
+            Rectangle {
                 x,
                 y: y + h - 1.,
-                w,
-                h: 1.,
+                width: w,
+                height: 1.,
             },
             source,
             color,
         );
         self.draw_rectangle(
-            Rect {
+            Rectangle {
                 x,
                 y: y + 1.,
-                w: 1.,
-                h: h - 2.,
+                width: 1.,
+                height: h - 2.,
             },
             source,
             color,
@@ -74,13 +74,13 @@ impl DrawList {
 
     fn draw_sprite(
         &mut self,
-        rect: Rect,
-        src: Rect,
+        rect: Rectangle,
+        src: Rectangle,
         offsets: RectOffset,
         uv_offsets: RectOffset,
         color: Color,
     ) {
-        let Rect { x, y, w, h } = rect;
+        let Rectangle { x, y, width: w, height: h } = rect;
 
         let RectOffset {
             left, right, top, ..
@@ -96,8 +96,8 @@ impl DrawList {
         let xs = [x, x + left, x + w - right, x + w];
         let ys = [y, y + top, y + h - top, y + h];
 
-        let us = [src.x, src.x + left0, src.x + src.w - right0, src.x + src.w];
-        let vs = [src.y, src.y + top0, src.y + src.h - bottom0, src.y + src.h];
+        let us = [src.x, src.x + left0, src.x + src.width - right0, src.x + src.width];
+        let vs = [src.y, src.y + top0, src.y + src.height - bottom0, src.y + src.height];
 
         let mut n = 0;
         let mut vertices =
@@ -106,7 +106,7 @@ impl DrawList {
         for (x, u) in xs.iter().zip(us.iter()) {
             for (y, v) in ys.iter().zip(vs.iter()) {
                 vertices[n].position = vec3(*x, *y, 0.);
-                vertices[n].uv = vec2(*u, *v);
+                vertices[n].uv = Vec2::new(*u, *v);
                 vertices[n].color = color.into();
                 n += 1;
             }
@@ -135,15 +135,15 @@ impl DrawList {
             .extend(indices.iter().map(|i| i + indices_offset));
     }
 
-    fn draw_rectangle(&mut self, rect: Rect, src: Rect, color: Color) {
-        let Rect { x, y, w, h } = rect;
+    fn draw_rectangle(&mut self, rect: Rectangle, src: Rectangle, color: Color) {
+        let Rectangle { x, y, width: w, height: h } = rect;
 
         #[rustfmt::skip]
         let vertices = [
             Vertex::new(x    , y    , 0.0, src.x        , src.y        , color),
-            Vertex::new(x + w, y    , 0.0, src.x + src.w, src.y        , color),
-            Vertex::new(x + w, y + h, 0.0, src.x + src.w, src.y + src.h, color),
-            Vertex::new(x    , y + h, 0.0, src.x        , src.y + src.h, color),
+            Vertex::new(x + w, y    , 0.0, src.x + src.width, src.y        , color),
+            Vertex::new(x + w, y + h, 0.0, src.x + src.width, src.y + src.height, color),
+            Vertex::new(x    , y + h, 0.0, src.x        , src.y + src.height, color),
         ];
         let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
 
@@ -153,7 +153,7 @@ impl DrawList {
             .extend(indices.iter().map(|i| i + indices_offset));
     }
 
-    fn draw_triangle(&mut self, p0: Vec2, p1: Vec2, p2: Vec2, source: Rect, color: Color) {
+    fn draw_triangle(&mut self, p0: Vec2<f32>, p1: Vec2<f32>, p2: Vec2<f32>, source: Rectangle, color: Color) {
         let vertices = [
             Vertex::new(p0.x, p0.y, 0.0, source.x, source.y, color),
             Vertex::new(p1.x, p1.y, 0.0, source.x, source.y, color),
@@ -174,7 +174,7 @@ impl DrawList {
         x2: f32,
         y2: f32,
         thickness: f32,
-        source: Rect,
+        source: Rectangle,
         color: Color,
     ) {
         let dx = x2 - x1;
@@ -310,7 +310,7 @@ pub(crate) fn render_command(draw_lists: &mut Vec<DrawList>, command: DrawComman
         DrawCommand::DrawRawTexture { rect, .. } => {
             active_draw_list.draw_rectangle(
                 rect,
-                Rect::new(0., 0., 1., 1.),
+                Rectangle::new(0., 0., 1., 1.),
                 Color::new(1., 1., 1., 1.),
             );
         }

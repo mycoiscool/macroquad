@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
 struct Rustaceane {
-    pos: Vec2,
-    speed: Vec2,
+    pos: Vec2<f32>,
+    speed: Vec2<f32>,
     color: Color,
 }
 

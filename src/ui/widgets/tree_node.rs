@@ -1,5 +1,7 @@
+use tetra::math::Vec2;
+
 use crate::{
-    math::{vec2, Rect},
+    math::{vec2, Rectangle},
     ui::{ElementState, Id, Layout, Ui},
 };
 
@@ -40,12 +42,12 @@ impl<'a> TreeNode<'a> {
     pub fn begin(self, ui: &mut Ui) -> Option<TreeNodeToken> {
         let context = ui.get_active_window_context();
 
-        let size = vec2(300., 14.);
+        let size = Vec2::new(300., 14.);
 
         let pos = context.window.cursor.fit(size, Layout::Vertical);
 
-        let rect = Rect::new(pos.x, pos.y, size.x as f32, size.y as f32);
-        let hovered = rect.contains(context.input.mouse_position);
+        let rect = Rectangle::new(pos.x, pos.y, size.x as f32, size.y as f32);
+        let hovered = rect.contains_point(context.input.mouse_position);
 
         let clicked = context.focused && hovered && context.input.click_down();
 
@@ -69,7 +71,7 @@ impl<'a> TreeNode<'a> {
         );
         context.window.painter.draw_element_label(
             &context.style.label_style,
-            pos + vec2(10., 0.),
+            pos + Vec2::new(10., 0.),
             &*self.label,
             ElementState {
                 focused: context.focused,

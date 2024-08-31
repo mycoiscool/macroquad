@@ -19,8 +19,8 @@ async fn main() {
 
         // 0..100, 0..100 camera
         set_camera(&Camera2D {
-            zoom: vec2(0.01, 0.01),
-            target: vec2(0.0, 0.0),
+            zoom: Vec2::new(0.01, 0.01),
+            target: Vec2::new(0.0, 0.0),
             render_target: Some(render_target.clone()),
             ..Default::default()
         });
@@ -42,7 +42,7 @@ async fn main() {
             0.,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(screen_width(), screen_height())),
+                dest_size: Some(Vec2::new(screen_width(), screen_height())),
                 ..Default::default()
             },
         );

@@ -65,14 +65,14 @@ pub struct TileSet {
 }
 
 impl TileSet {
-    fn sprite_rect(&self, ix: u32) -> Rect {
+    fn sprite_rect(&self, ix: u32) -> Rectangle {
         let sw = self.tilewidth as f32;
         let sh = self.tileheight as f32;
         let sx = (ix % self.columns) as f32 * (sw + self.spacing as f32) + self.margin as f32;
         let sy = (ix / self.columns) as f32 * (sh + self.spacing as f32) + self.margin as f32;
 
         // TODO: configure tiles margin
-        Rect::new(sx + 1.1, sy + 1.1, sw - 2.2, sh - 2.2)
+        Rectangle::new(sx + 1.1, sy + 1.1, sw - 2.2, sh - 2.2)
     }
 }
 
@@ -86,7 +86,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn spr(&self, tileset: &str, sprite: u32, dest: Rect) {
+    pub fn spr(&self, tileset: &str, sprite: u32, dest: Rectangle) {
         if self.tilesets.contains_key(tileset) == false {
             panic!(
                 "No such tileset: {}, tilesets available: {:?}",
@@ -103,19 +103,19 @@ impl Map {
             dest.y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(dest.w, dest.h)),
-                source: Some(Rect::new(
+                dest_size: Some(Vec2::new(dest.width, dest.height)),
+                source: Some(Rectangle::new(
                     spr_rect.x - 1.0,
                     spr_rect.y - 1.0,
-                    spr_rect.w + 2.0,
-                    spr_rect.h + 2.0,
+                    spr_rect.width + 2.0,
+                    spr_rect.height + 2.0,
                 )),
                 ..Default::default()
             },
         );
     }
 
-    pub fn spr_ex(&self, tileset: &str, source: Rect, dest: Rect) {
+    pub fn spr_ex(&self, tileset: &str, source: Rectangle, dest: Rectangle) {
         let tileset = &self.tilesets[tileset];
 
         draw_texture_ex(
@@ -124,7 +124,7 @@ impl Map {
             dest.y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(dest.w, dest.h)),
+                dest_size: Some(Vec2::new(dest.width, dest.height)),
                 source: Some(source),
                 ..Default::default()
             },
@@ -135,10 +135,10 @@ impl Map {
         self.layers.contains_key(layer)
     }
 
-    pub fn draw_tiles(&self, layer: &str, dest: Rect, source: impl Into<Option<Rect>>) {
+    pub fn draw_tiles(&self, layer: &str, dest: Rectangle, source: impl Into<Option<Rectangle>>) {
         assert!(self.layers.contains_key(layer), "No such layer: {}", layer);
 
-        let source = source.into().unwrap_or(Rect::new(
+        let source = source.into().unwrap_or(Rectangle::new(
             0.,
             0.,
             self.raw_tiled_map.width as f32,
@@ -146,13 +146,13 @@ impl Map {
         ));
         let layer = &self.layers[layer];
 
-        let spr_width = dest.w / source.w;
-        let spr_height = dest.h / source.h;
+        let spr_width = dest.width / source.width;
+        let spr_height = dest.height / source.height;
 
-        let mut separated_by_ts: HashMap<&str, Vec<(&Tile, Rect)>> = HashMap::new();
+        let mut separated_by_ts: HashMap<&str, Vec<(&Tile, Rectangle)>> = HashMap::new();
 
-        for y in source.y as u32..source.y as u32 + source.h as u32 {
-            for x in source.x as u32..source.x as u32 + source.w as u32 {
+        for y in source.y as u32..source.y as u32 + source.height as u32 {
+            for x in source.x as u32..source.x as u32 + source.width as u32 {
                 if let Some(tile) = &layer
                     .data
                     .get((y * layer.width + x) as usize)
@@ -162,14 +162,14 @@ impl Map {
                         separated_by_ts.insert(&tile.tileset, vec![]);
                     }
 
-                    let pos = vec2(
-                        (x - source.x as u32) as f32 / source.w * dest.w + dest.x,
-                        (y - source.y as u32) as f32 / source.h * dest.h + dest.y,
+                    let pos = Vec2::new(
+                        (x - source.x as u32) as f32 / source.width * dest.width + dest.x,
+                        (y - source.y as u32) as f32 / source.height * dest.height + dest.y,
                     );
                     separated_by_ts
                         .get_mut(tile.tileset.as_str())
                         .unwrap()
-                        .push((&tile, Rect::new(pos.x, pos.y, spr_width, spr_height)));
+                        .push((&tile, Rectangle::new(pos.x, pos.y, spr_width, spr_height)));
                 }
             }
         }
@@ -181,7 +181,7 @@ impl Map {
         }
     }
 
-    pub fn draw_imglayer(&self, layer: &str, dest: Rect, source: Option<Rect>) {
+    pub fn draw_imglayer(&self, layer: &str, dest: Rectangle, source: Option<Rectangle>) {
         assert!(self.layers.contains_key(layer), "No such layer: {}", layer);
         let layer = &self.layers[layer];
         assert!(layer.image.is_some(), "No texture found.");
@@ -191,11 +191,11 @@ impl Map {
         let dest_height_frac =
             img_texture.height() / (self.raw_tiled_map.height * self.raw_tiled_map.height) as f32;
 
-        let source = source.unwrap_or(Rect::new(0., 0., img_texture.width(), img_texture.height()));
+        let source = source.unwrap_or(Rectangle::new(0., 0., img_texture.width(), img_texture.height()));
         draw_texture_ex(
             &img_texture,
-            (layer.offsetx.unwrap() - source.x) / source.w * dest.w + dest.x,
-            (layer.offsety.unwrap() - source.y) / source.h * dest.h + dest.y,
+            (layer.offsetx.unwrap() - source.x) / source.width * dest.width + dest.x,
+            (layer.offsety.unwrap() - source.y) / source.height * dest.height + dest.y,
             Color {
                 r: 255.,
                 g: 255.,
@@ -203,17 +203,17 @@ impl Map {
                 a: layer.opacity,
             },
             DrawTextureParams {
-                dest_size: Some(vec2(dest.w * dest_width_frac, dest.h * dest_height_frac)),
+                dest_size: Some(Vec2::new(dest.width * dest_width_frac, dest.height * dest_height_frac)),
                 source: Some(source),
                 ..Default::default()
             },
         );
     }
 
-    pub fn tiles(&self, layer: &str, rect: impl Into<Option<Rect>>) -> TilesIterator {
+    pub fn tiles(&self, layer: &str, rect: impl Into<Option<Rectangle>>) -> TilesIterator {
         assert!(self.layers.contains_key(layer), "No such layer: {}", layer);
 
-        let rect = rect.into().unwrap_or(Rect::new(
+        let rect = rect.into().unwrap_or(Rectangle::new(
             0.,
             0.,
             self.raw_tiled_map.width as f32,
@@ -236,13 +236,13 @@ impl Map {
 }
 
 pub struct TilesIterator<'a> {
-    rect: Rect,
+    rect: Rectangle,
     current: (u32, u32),
     layer: &'a Layer,
 }
 
 impl<'a> TilesIterator<'a> {
-    fn new(layer: &'a Layer, rect: Rect) -> Self {
+    fn new(layer: &'a Layer, rect: Rectangle) -> Self {
         let current = (rect.x as u32, rect.y as u32);
 
         TilesIterator {
@@ -260,7 +260,7 @@ impl<'a> Iterator for TilesIterator<'a> {
         let next_x;
         let next_y;
 
-        if self.current.0 + 1 >= self.rect.x as u32 + self.rect.w as u32 {
+        if self.current.0 + 1 >= self.rect.x as u32 + self.rect.width as u32 {
             next_x = self.rect.x as u32;
             next_y = self.current.1 + 1;
         } else {
@@ -268,7 +268,7 @@ impl<'a> Iterator for TilesIterator<'a> {
             next_y = self.current.1;
         }
 
-        if next_y >= self.rect.y as u32 + self.rect.h as u32 {
+        if next_y >= self.rect.y as u32 + self.rect.height as u32 {
             return None;
         }
 

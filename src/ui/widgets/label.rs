@@ -6,9 +6,9 @@ use crate::{
 use std::borrow::Cow;
 
 pub struct Label<'a> {
-    position: Option<Vec2>,
+    position: Option<Vec2<f32>>,
     _multiline: Option<f32>,
-    size: Option<Vec2>,
+    size: Option<Vec2<f32>>,
     label: Cow<'a, str>,
 }
 
@@ -32,13 +32,13 @@ impl<'a> Label<'a> {
         }
     }
 
-    pub fn position<P: Into<Option<Vec2>>>(self, position: P) -> Self {
+    pub fn position<P: Into<Option<Vec2<f32>>>>(self, position: P) -> Self {
         let position = position.into();
 
         Label { position, ..self }
     }
 
-    pub fn size(self, size: Vec2) -> Self {
+    pub fn size(self, size: Vec2<f32>) -> Self {
         Label {
             size: Some(size),
             ..self
@@ -76,11 +76,11 @@ impl<'a> Label<'a> {
 }
 
 impl Ui {
-    pub fn label<P: Into<Option<Vec2>>>(&mut self, position: P, label: &str) {
+    pub fn label<P: Into<Option<Vec2<f32>>>>(&mut self, position: P, label: &str) {
         Label::new(label).position(position).ui(self)
     }
 
-    pub fn calc_size(&mut self, label: &str) -> Vec2 {
+    pub fn calc_size(&mut self, label: &str) -> Vec2<f32> {
         let context = self.get_active_window_context();
 
         context

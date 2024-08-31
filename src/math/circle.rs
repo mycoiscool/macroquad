@@ -1,4 +1,4 @@
-use crate::math::{vec2, Rect, Vec2};
+use crate::math::{vec2, Rectangle, Vec2};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Circle {
@@ -12,8 +12,8 @@ impl Circle {
         Circle { x, y, r }
     }
 
-    pub fn point(&self) -> Vec2 {
-        vec2(self.x, self.y)
+    pub fn point(&self) -> Vec2<f32> {
+        Vec2::new(self.x, self.y)
     }
 
     pub fn radius(&self) -> f32 {
@@ -21,7 +21,7 @@ impl Circle {
     }
 
     /// Moves the `Circle`'s origin to (x, y)
-    pub fn move_to(&mut self, destination: Vec2) {
+    pub fn move_to(&mut self, destination: Vec2<f32>) {
         self.x = destination.x;
         self.y = destination.y;
     }
@@ -32,8 +32,8 @@ impl Circle {
     }
 
     /// Checks whether the `Circle` contains a `Point`
-    pub fn contains(&self, pos: &Vec2) -> bool {
-        return pos.distance(vec2(self.x, self.y)) < self.r;
+    pub fn contains(&self, pos: &Vec2<f32>) -> bool {
+        return pos.distance(Vec2::new(self.x, self.y)) < self.r;
     }
 
     /// Checks whether the `Circle` overlaps a `Circle`
@@ -42,23 +42,23 @@ impl Circle {
     }
 
     /// Checks whether the `Circle` overlaps a `Rect`
-    pub fn overlaps_rect(&self, rect: &Rect) -> bool {
+    pub fn overlaps_rect(&self, rect: &Rectangle) -> bool {
         let dist_x = (self.x - rect.center().x).abs();
         let dist_y = (self.y - rect.center().y).abs();
-        if dist_x > rect.w / 2.0 + self.r || dist_y > rect.h / 2.0 + self.r {
+        if dist_x > rect.width / 2.0 + self.r || dist_y > rect.height / 2.0 + self.r {
             return false;
         }
-        if dist_x <= rect.w / 2.0 || dist_y <= rect.h / 2.0 {
+        if dist_x <= rect.width / 2.0 || dist_y <= rect.height / 2.0 {
             return true;
         }
-        let lhs = dist_x - rect.w / 2.0;
-        let rhs = dist_y - rect.h / 2.0;
+        let lhs = dist_x - rect.width / 2.0;
+        let rhs = dist_y - rect.height / 2.0;
         let dist_sq = (lhs * lhs) + (rhs * rhs);
         return dist_sq <= self.r * self.r;
     }
 
     /// Translate `Circle` origin by `offset` vector
-    pub fn offset(self, offset: Vec2) -> Circle {
+    pub fn offset(self, offset: Vec2<f32>) -> Circle {
         Circle::new(self.x + offset.x, self.y + offset.y, self.r)
     }
 }

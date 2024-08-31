@@ -17,11 +17,11 @@ pub struct InputCharacter {
 
 #[derive(Default, Clone)]
 pub struct Input {
-    pub(crate) mouse_position: Vec2,
+    pub(crate) mouse_position: Vec2<f32>,
     pub(crate) is_mouse_down: bool,
     pub(crate) click_down: bool,
     pub(crate) click_up: bool,
-    pub(crate) mouse_wheel: Vec2,
+    pub(crate) mouse_wheel: Vec2<f32>,
     pub(crate) input_buffer: Vec<InputCharacter>,
     pub(crate) modifier_ctrl: bool,
     pub(crate) escape: bool,

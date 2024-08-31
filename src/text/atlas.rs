@@ -1,10 +1,10 @@
-use crate::{get_context, get_quad_context, math::Rect, texture::Image, Color};
+use crate::{get_context, get_quad_context, math::Rectangle, texture::Image, Color};
 
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Sprite {
-    pub rect: Rect,
+    pub rect: Rectangle,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
@@ -108,16 +108,16 @@ impl Atlas {
         self.texture
     }
 
-    pub fn get_uv_rect(&self, key: SpriteKey) -> Option<Rect> {
+    pub fn get_uv_rect(&self, key: SpriteKey) -> Option<Rectangle> {
         let ctx = get_quad_context();
         self.get(key).map(|sprite| {
             let (w, h) = ctx.texture_size(self.texture);
 
-            Rect::new(
+            Rectangle::new(
                 sprite.rect.x / w as f32,
                 sprite.rect.y / h as f32,
-                sprite.rect.w / w as f32,
-                sprite.rect.h / h as f32,
+                sprite.rect.width / w as f32,
+                sprite.rect.height / h as f32,
             )
         })
     }
@@ -184,7 +184,7 @@ impl Atlas {
             self.sprites.insert(
                 key,
                 Sprite {
-                    rect: Rect::new(x as f32, y as f32, width as f32, height as f32),
+                    rect: Rectangle::new(x as f32, y as f32, width as f32, height as f32),
                 },
             );
         }
